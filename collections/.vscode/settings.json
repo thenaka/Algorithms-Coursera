@@ -1,8 +1,8 @@
 {
     "java.project.referencedLibraries": [
         "lib/**/*.jar",
-        "C:\\Users\\rmura\\source\\repos\\Algorithms-Coursera\\lib\\algs4.jar",
-        "C:\\Users\\rmura\\source\\repos\\Algorithms-Coursera\\lib\\stdlib.jar"
+        "..\\..\\lib\\algs4.jar",
+        "..\\..\\lib\\stdlib.jar"
     ],
     "java.debug.settings.onBuildFailureProceed": true
 }
