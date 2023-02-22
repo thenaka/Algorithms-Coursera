@@ -1,0 +1,42 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "type": "java",
+            "name": "Launch RandomizedQueue",
+            "request": "launch",
+            "mainClass": "RandomizedQueue",
+            "projectName": "collections_1a439498",
+			"vmArgs": "-enableassertions"
+        },
+        {
+            "type": "java",
+            "name": "Launch Current File",
+            "request": "launch",
+            "mainClass": "${file}",
+            "vmArgs": "-enableassertions"
+        },
+        {
+            "type": "java",
+            "name": "Launch Deque",
+            "request": "launch",
+            "mainClass": "Deque",
+            "projectName": "collections_1a439498",
+			"vmArgs": "-enableassertions"
+        },
+        {
+            "type": "java",
+            "name": "Launch Permutation",
+            "request": "launch",
+            "mainClass": "Permutation",            
+			"args": 
+			[
+				"5"
+			] 
+        }
+    ]
+}
