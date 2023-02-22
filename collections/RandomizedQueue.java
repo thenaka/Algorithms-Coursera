@@ -43,12 +43,9 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     public Item dequeue() {
         throwIfEmpty();
 
-        Item[] itemsCopy = copy(items); // we don't the padded nulls to be shuffled so create a copy
-        StdRandom.shuffle(itemsCopy); // shuffle the copy then ...
-        items = copy(itemsCopy); // re-copy back to original
-
-        // remove the item
-        Item item = items[--count];
+        int randomPosition = StdRandom.uniformInt(count);
+        Item randomItem = items[randomPosition];
+        items[randomPosition] = items[--count];
         items[count] = null;
 
         // resize when needed
@@ -56,7 +53,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
             resize(items.length / 2);
         }
 
-        return item;
+        return randomItem;
     }
 
     // return a random item (but do not remove it)
