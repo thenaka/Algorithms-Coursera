@@ -9,36 +9,22 @@
             "name": "Launch RandomizedQueue",
             "request": "launch",
             "mainClass": "RandomizedQueue",
-            "projectName": "collections_343bf65c"
+            "projectName": "collections_343bf65c",
+            "vmArgs": "-enableassertions"
         },
         {
             "type": "java",
             "name": "Launch Deque",
             "request": "launch",
             "mainClass": "Deque",
-            "projectName": "collections_343bf65c"
+            "projectName": "collections_343bf65c",
+            "vmArgs": "-enableassertions"
         },
         {
             "type": "java",
             "name": "Launch Current File",
             "request": "launch",
             "mainClass": "${file}",
-            "vmArgs": "-enableassertions"
-        },
-        {
-            "type": "java",
-            "name": "Launch Deque",
-            "request": "launch",
-            "mainClass": "Deque",
-            "projectName": "collections_1a439498",
-            "vmArgs": "-enableassertions"
-        },
-        {
-            "type": "java",
-            "name": "Launch RandomizedQueue",
-            "request": "launch",
-            "mainClass": "RandomizedQueue",
-            "projectName": "collections_1a439498",
             "vmArgs": "-enableassertions"
         },
         {
