@@ -1,6 +1,7 @@
-import edu.princeton.cs.algs4.StdRandom;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+
+import edu.princeton.cs.algs4.StdRandom;
 
 public class RandomizedQueue<Item> implements Iterable<Item> {
     private final int initialCapacity = 8; // start at a reasonable size
