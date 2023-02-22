@@ -2,8 +2,8 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 public class Deque<Item> implements Iterable<Item> {
-    private Node<Item> first;
-    private Node<Item> last;
+    private Node first;
+    private Node last;
     private int count;
 
     // construct an empty deque
@@ -25,7 +25,7 @@ public class Deque<Item> implements Iterable<Item> {
     public void addFirst(Item item) {
         throwIfNull(item);
 
-        Node<Item> temp = new Node<Item>(item);
+        Node temp = new Node(item);
         if (count == 0) {
             first = temp;
             last = temp;
@@ -41,7 +41,7 @@ public class Deque<Item> implements Iterable<Item> {
     public void addLast(Item item) {
         throwIfNull(item);
 
-        Node<Item> temp = new Node<Item>(item);
+        Node temp = new Node(item);
         if (count == 0) {
             first = temp;
             last = temp;
@@ -62,7 +62,7 @@ public class Deque<Item> implements Iterable<Item> {
     // remove and return the item from the front
     public Item removeFirst() {
         throwIfEmpty();
-        Node<Item> temp = first;
+        Node temp = first;
         if (count == 1) {
             first = null;
             last = null;
@@ -78,7 +78,7 @@ public class Deque<Item> implements Iterable<Item> {
     // remove and return the item from the back
     public Item removeLast() {
         throwIfEmpty();
-        Node<Item> temp = last;
+        Node temp = last;
         if (count == 1) {
             first = null;
             last = null;
@@ -102,7 +102,7 @@ public class Deque<Item> implements Iterable<Item> {
     }
 
     private class DequeIterator implements Iterator<Item> {
-        private Node<Item> current = first;
+        private Node current = first;
 
         public boolean hasNext() {
             return current != null;
@@ -123,10 +123,10 @@ public class Deque<Item> implements Iterable<Item> {
         }
     }
 
-    private class Node<Item> {
+    private class Node {
         Item value;
-        Node<Item> next;
-        Node<Item> prev;
+        Node next;
+        Node prev;
 
         public Node(Item item) {
             value = item;
