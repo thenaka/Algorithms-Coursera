@@ -32,24 +32,25 @@ public class Percolation {
     //  \   \  |  /   /
     //   \   \ | /   /
     //         26
-    // The grid is created with two virtual nodes that the first row and last row are connected to.
-    // Which allows checking for peroclation.
+    // The grid is created with two virtual nodes that the first row and last row
+    // are connected to.
+    // Which allows checking for percolation.
     private void setupQuickUnion() {
         quickUnionLength = (dimension * dimension) + 2; // two additional nodes are created for the virtual nodes
         quickUnion = new WeightedQuickUnionUF(quickUnionLength);
-        
+
         // connect the first rows' elements to the 0th zero node
         for (int i = 1; i <= dimension; i++) {
             quickUnion.union(virtualFirstElement, i);
         }
-        
+
         virtualLastElement = quickUnionLength - 1;
         int lastRow = (dimension * dimension) - dimension;
         for (int i = 1; i <= dimension; i++) {
             quickUnion.union(virtualLastElement, lastRow + i);
         }
     }
-    
+
     private void setupOpenSites() {
         openSitesCount = 0;
         openSites = new boolean[dimension][dimension];
@@ -66,7 +67,7 @@ public class Percolation {
 
         int zeroBasedRow = row - 1;
         int zeroBasedCol = col - 1;
-        
+
         if (openSites[zeroBasedRow][zeroBasedCol]) {
             return; // do nothing if this site is already open
         }
@@ -130,10 +131,10 @@ public class Percolation {
     }
 
     private void throwIfOutsideDimension(int row, int col) {
-        if (row > dimension || row < 0) {
+        if (row > dimension || row < 1) {
             throw new IllegalArgumentException("row must be from 0 to " + dimension);
         }
-        if (col > dimension || col < 0) {
+        if (col > dimension || col < 1) {
             throw new IllegalArgumentException("col must not from 0 to " + dimension);
         }
     }
@@ -145,12 +146,20 @@ public class Percolation {
 
     // does the system percolate?
     public boolean percolates() {
+        // handle corner case
+        if (dimension == 1) {
+            return isOpen(1, 1);
+        }
         return quickUnion.find(virtualFirstElement) == quickUnion.find(virtualLastElement);
     }
 
     // test client (optional)
     public static void main(String[] args) {
-        Percolation percolation = new Percolation(5);
+        Percolation percolation = new Percolation(1);
+        assert !percolation.percolates();
+        assert percolation.numberOfOpenSites() == 0;
+
+        percolation = new Percolation(5);
         assert !percolation.percolates();
         assert percolation.numberOfOpenSites() == 0;
 
