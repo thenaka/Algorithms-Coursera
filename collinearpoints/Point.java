@@ -119,9 +119,17 @@ public class Point implements Comparable<Point> {
      *
      * @return the Comparator that defines this ordering on points
      */
-    // public Comparator<Point> slopeOrder() {
-    // /* YOUR CODE HERE */
-    // }
+    public Comparator<Point> slopeOrder() {
+        return new BySlope();
+    }
+
+    private class BySlope implements Comparator<Point> {
+        public int compare(Point a, Point b) {
+            double slopeA = slopeTo(a);
+            double slopeB = slopeTo(b);
+            return Double.compare(slopeA, slopeB);
+        }
+    }
 
     /**
      * Returns a string representation of this point.
@@ -139,10 +147,12 @@ public class Point implements Comparable<Point> {
      * Unit tests the Point data type.
      */
     public static void main(String[] args) {
-        // slopeTo assertions
+        // point assertion
         Point a = new Point(1, 1);
         assert a.x == 1;
         assert a.y == 1;
+
+        // slopeTo assertions
         assert a.slopeTo(a) == Double.NEGATIVE_INFINITY : "Slope to the same point should be negative infinity.";
 
         Point b = new Point(1, 2);
@@ -159,5 +169,25 @@ public class Point implements Comparable<Point> {
 
         Point f = new Point(3, 2);
         assert a.slopeTo(f) == 0.5;
+
+        // compareTo assertions
+        assert a.compareTo(a) == 0;
+        assert a.compareTo(b) == -1;
+        assert a.compareTo(c) == -1;
+        assert b.compareTo(a) == 1;
+        assert c.compareTo(a) == 1;
+
+        // comparator assertions
+        Comparator<Point> comparator = a.slopeOrder();
+        assert comparator.compare(b, c) == 1;
+        assert comparator.compare(d, e) == -1;
+        assert comparator.compare(a, b) == -1;
+        assert comparator.compare(e, f) == 1;
+        assert comparator.compare(a, a) == 0;
+        assert comparator.compare(b, b) == 0;
+        assert comparator.compare(c, c) == 0;
+        assert comparator.compare(d, d) == 0;
+        assert comparator.compare(e, e) == 0;
+        assert comparator.compare(f, f) == 0;
     }
 }
