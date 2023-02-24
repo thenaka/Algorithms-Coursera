@@ -6,6 +6,14 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Launch BruteCollinearPoints",
+            "request": "launch",
+            "mainClass": "BruteCollinearPoints",
+            "projectName": "collinearpoints_b425930f",
+            "vmArgs": "-enableassertions"
+        },
+        {
+            "type": "java",
             "name": "Launch Current File",
             "request": "launch",
             "mainClass": "${file}"
