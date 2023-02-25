@@ -18,7 +18,7 @@ public class BruteCollinearPoints {
         findLineSegments(points);
     }
 
-    private void validateAndSortPoints(Point[] points) {
+    public static void validateAndSortPoints(Point[] points) {
         if (points == null) {
             throw new IllegalArgumentException("Points must not be null.");
         }
@@ -49,7 +49,7 @@ public class BruteCollinearPoints {
                         if (comparator.compare(points[j], points[k]) == 0
                                 && comparator.compare(points[k], points[l]) == 0) {
                             if (count + 1 == lineSegments.length) {
-                                resizeLineSegments(lineSegments.length * 2);
+                                resize(lineSegments, count, lineSegments.length * 2);
                             }
                             StdOut.println(points[i] + " " + points[j] + " " + points[k] + " " + points[l]);
                             lineSegments[count++] = new LineSegment(points[i], points[l]);
@@ -60,12 +60,12 @@ public class BruteCollinearPoints {
         }
     }
 
-    private void resizeLineSegments(int newCapacity) {
+    public static void resize(LineSegment[] source, int count, int newCapacity) {
         LineSegment[] temp = new LineSegment[newCapacity];
         for (int i = 0; i < count; i++) {
-            temp[i] = lineSegments[i];
+            temp[i] = source[i];
         }
-        lineSegments = temp;
+        source = temp;
     }
 
     /**
@@ -96,22 +96,25 @@ public class BruteCollinearPoints {
         // Base case four collinear points
         StdOut.println("Base case");
         BruteCollinearPoints brute = new BruteCollinearPoints(getCollinearPoints(4));
-        assert brute.count == 1;
-        assert brute.lineSegments[0].toString().equals("(0, 0) -> (3, 3)");
+        assert brute.numberOfSegments() == 1;
+        assert brute.segments()[0].toString().equals("(0, 0) -> (3, 3)");
 
         // Add one more collinear point
         StdOut.println("Five collinear case");
         brute = new BruteCollinearPoints(getCollinearPoints(5));
-        assert brute.count == 5;
+        assert brute.numberOfSegments() == 5;
 
         StdOut.println("20 Random Points with max 20");
         brute = new BruteCollinearPoints(getRandomPoints(20, 20));
 
         StdOut.println("40 Random Points with max 20");
         brute = new BruteCollinearPoints(getRandomPoints(40, 20));
+
+        StdOut.println("80 Random Points with max 20");
+        brute = new BruteCollinearPoints(getRandomPoints(80, 20));
     }
 
-    private static Point[] getCollinearPoints(int count) {
+    public static Point[] getCollinearPoints(int count) {
         Point[] points = new Point[count];
         for (int i = 0; i < count; i++) {
             points[i] = new Point(i, i);
@@ -119,7 +122,7 @@ public class BruteCollinearPoints {
         return points;
     }
 
-    private static Point[] getRandomPoints(int count, int max) {
+    public static Point[] getRandomPoints(int count, int max) {
         Point[] points = new Point[count];
         for (int i = 0; i < count; i++) {
             // create candidate point, see if point is already in points

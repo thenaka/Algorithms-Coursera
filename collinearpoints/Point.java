@@ -9,6 +9,7 @@
  *
  ******************************************************************************/
 
+import java.util.Arrays;
 import java.util.Comparator;
 import edu.princeton.cs.algs4.StdDraw;
 
@@ -189,5 +190,22 @@ public class Point implements Comparable<Point> {
         assert comparator.compare(d, d) == 0;
         assert comparator.compare(e, e) == 0;
         assert comparator.compare(f, f) == 0;
+
+        // slopeOrder sort
+        Point[] points = new Point[6];
+        points[0] = d;
+        points[1] = b;
+        points[2] = a;
+        points[3] = f;
+        points[4] = c;
+        points[5] = e;
+
+        Arrays.sort(points, a.slopeOrder());
+        assert points[0].equals(a);
+        assert points[1].equals(c);
+        assert points[2].equals(f);
+        assert points[3].equals(d);
+        assert points[4].equals(e);
+        assert points[5].equals(b);
     }
 }
