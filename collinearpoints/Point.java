@@ -62,7 +62,7 @@ public class Point implements Comparable<Point> {
      */
     public double slopeTo(Point that) {
         if (that == null) {
-            throw new IllegalArgumentException("Point to find slope must not be null.");
+            throw new NullPointerException("Point to find slope must not be null.");
         }
 
         double yDelta = that.y - this.y;
@@ -98,7 +98,7 @@ public class Point implements Comparable<Point> {
      */
     public int compareTo(Point that) {
         if (that == null) {
-            throw new IllegalArgumentException("Point to compare to must not be null.");
+            throw new NullPointerException("Point to compare to must not be null.");
         }
         if (this.y < that.y) {
             return -1;
@@ -126,6 +126,9 @@ public class Point implements Comparable<Point> {
 
     private class BySlope implements Comparator<Point> {
         public int compare(Point a, Point b) {
+            if (a == null || b == null) {
+                throw new NullPointerException("Neither comparison point may be null.");
+            }
             double slopeA = slopeTo(a);
             double slopeB = slopeTo(b);
             return Double.compare(slopeA, slopeB);
@@ -172,18 +175,17 @@ public class Point implements Comparable<Point> {
         assert a.slopeTo(f) == 0.5;
 
         // compareTo assertions
-        assert a.compareTo(a) == 0;
-        assert a.compareTo(b) == -1;
-        assert a.compareTo(c) == -1;
-        assert b.compareTo(a) == 1;
-        assert c.compareTo(a) == 1;
+        assert a.compareTo(b) < 0;
+        assert a.compareTo(c) < 0;
+        assert b.compareTo(a) > 0;
+        assert c.compareTo(a) > 0;
 
         // comparator assertions
         Comparator<Point> comparator = a.slopeOrder();
-        assert comparator.compare(b, c) == 1;
-        assert comparator.compare(d, e) == -1;
-        assert comparator.compare(a, b) == -1;
-        assert comparator.compare(e, f) == 1;
+        assert comparator.compare(b, c) > 0;
+        assert comparator.compare(d, e) < 0;
+        assert comparator.compare(a, b) < 0;
+        assert comparator.compare(e, f) > 0;
         assert comparator.compare(a, a) == 0;
         assert comparator.compare(b, b) == 0;
         assert comparator.compare(c, c) == 0;

@@ -1,6 +1,9 @@
 import java.util.Arrays;
 import java.util.Comparator;
 
+import edu.princeton.cs.algs4.StdOut;
+import edu.princeton.cs.algs4.StdRandom;
+
 public class BruteCollinearPoints {
     private int count = 0;
     private LineSegment[] lineSegments;
@@ -13,15 +16,25 @@ public class BruteCollinearPoints {
      *                                  any two points are equal.
      */
     public BruteCollinearPoints(Point[] points) {
-        validateAndSortPoints(points);
-        lineSegments = new LineSegment[points.length * points.length];
-        findLineSegments(points);
-    }
-
-    public static void validateAndSortPoints(Point[] points) {
         if (points == null) {
             throw new IllegalArgumentException("Points must not be null.");
         }
+        Point[] copy = copy(points);
+
+        validateAndSortPoints(copy);
+        lineSegments = new LineSegment[copy.length * copy.length];
+        findLineSegments(copy);
+    }
+
+    private Point[] copy(Point[] source) {
+        Point[] copy = new Point[source.length];
+        for (int i = 0; i < source.length; i++) {
+            copy[i] = source[i];
+        }
+        return copy;
+    }
+
+    private void validateAndSortPoints(Point[] points) {
         for (Point p : points) {
             if (p == null) {
                 throw new IllegalArgumentException("No point may be null.");
@@ -40,19 +53,20 @@ public class BruteCollinearPoints {
     }
 
     private void findLineSegments(Point[] points) {
-        int N = points.length;
-        for (int i = 0; i < N; i++) {
-            for (int j = i + 1; j < N; j++) {
-                for (int k = j + 1; k < N; k++) {
-                    for (int l = k + 1; l < N; l++) {
+        int length = points.length;
+        for (int i = 0; i < length; i++) {
+            for (int j = i + 1; j < length; j++) {
+                for (int k = j + 1; k < length; k++) {
+                    for (int m = k + 1; m < length; m++) {
                         Comparator<Point> comparator = points[i].slopeOrder();
                         if (comparator.compare(points[j], points[k]) == 0
-                                && comparator.compare(points[k], points[l]) == 0) {
+                                && comparator.compare(points[k], points[m]) == 0) {
                             if (count + 1 == lineSegments.length) {
-                                resize(lineSegments, count, lineSegments.length * 2);
+                                lineSegments = resize(lineSegments, count, lineSegments.length * 2);
                             }
-                            StdOut.println(points[i] + " " + points[j] + " " + points[k] + " " + points[l]);
-                            lineSegments[count++] = new LineSegment(points[i], points[l]);
+                            // StdOut.println(points[i] + " " + points[j] + " " + points[k] + " " +
+                            // points[m]);
+                            lineSegments[count++] = new LineSegment(points[i], points[m]);
                         }
                     }
                 }
@@ -60,12 +74,12 @@ public class BruteCollinearPoints {
         }
     }
 
-    public static void resize(LineSegment[] source, int count, int newCapacity) {
+    private LineSegment[] resize(LineSegment[] source, int sourceCount, int newCapacity) {
         LineSegment[] temp = new LineSegment[newCapacity];
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < sourceCount; i++) {
             temp[i] = source[i];
         }
-        source = temp;
+        return temp;
     }
 
     /**
@@ -86,7 +100,15 @@ public class BruteCollinearPoints {
      *         subsegments such as p→r or q→r
      */
     public LineSegment[] segments() {
-        return lineSegments;
+        return copy();
+    }
+
+    private LineSegment[] copy() {
+        LineSegment[] copy = new LineSegment[count];
+        for (int i = 0; i < count; i++) {
+            copy[i] = lineSegments[i];
+        }
+        return copy;
     }
 
     /**
@@ -106,15 +128,18 @@ public class BruteCollinearPoints {
 
         StdOut.println("20 Random Points with max 20");
         brute = new BruteCollinearPoints(getRandomPoints(20, 20));
+        assert brute.numberOfSegments() >= 0;
 
         StdOut.println("40 Random Points with max 20");
         brute = new BruteCollinearPoints(getRandomPoints(40, 20));
+        assert brute.numberOfSegments() >= 0;
 
         StdOut.println("80 Random Points with max 20");
         brute = new BruteCollinearPoints(getRandomPoints(80, 20));
+        assert brute.numberOfSegments() >= 0;
     }
 
-    public static Point[] getCollinearPoints(int count) {
+    private static Point[] getCollinearPoints(int count) {
         Point[] points = new Point[count];
         for (int i = 0; i < count; i++) {
             points[i] = new Point(i, i);
@@ -122,24 +147,24 @@ public class BruteCollinearPoints {
         return points;
     }
 
-    public static Point[] getRandomPoints(int count, int max) {
+    private static Point[] getRandomPoints(int count, int max) {
         Point[] points = new Point[count];
         for (int i = 0; i < count; i++) {
-            // create candidate point, see if point is already in points
-            Point candidate = new Point(StdRandom.uniformInt(max), StdRandom.uniformInt(max));
-            boolean contains = false;
-            for (int j = 0; j < i; j++) {
-                if (points[j].compareTo(candidate) == 0) {
-                    contains = true;
-                    break;
+            boolean contains;
+            Point candidate;
+            do {
+                // create candidate point, see if point is already in points
+                contains = false;
+                candidate = new Point(StdRandom.uniformInt(max), StdRandom.uniformInt(max));
+                for (int j = 0; j < i; j++) {
+                    if (points[j].compareTo(candidate) == 0) {
+                        contains = true;
+                        break;
+                    }
                 }
-            }
+            } while (contains);
 
-            if (!contains) {
-                points[i] = candidate;
-            } else {
-                i--; // reduce iteration to ensure we fill up the array
-            }
+            points[i] = candidate;
         }
         return points;
     }

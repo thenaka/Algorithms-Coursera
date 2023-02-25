@@ -6,6 +6,17 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Launch TestClient",
+            "request": "launch",
+            "mainClass": "TestClient",
+            "projectName": "collinearpoints_b425930f",
+            "args": 
+			[
+				"input8.txt"
+			] 
+        },
+        {
+            "type": "java",
             "name": "Launch FastCollinearPoints",
             "request": "launch",
             "mainClass": "FastCollinearPoints",
