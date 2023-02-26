@@ -52,14 +52,19 @@ public class FastCollinearPoints {
             Point[] copy = copy(points);
             Arrays.sort(copy, pointSlopeTo);
 
-            for (int q = 1; q < copy.length - 3; q++) {
+            for (int q = 0; q < copy.length - 3; q++) {
                 int r = q + 1;
                 int s = q + 2;
+
+                if (p.compareTo(copy[q]) == 0 || p.compareTo(copy[r]) == 0 || p.compareTo(copy[s]) == 0)
+                {
+                    continue; // skip point p
+                }
+
                 if (pointSlopeTo.compare(copy[q], copy[r]) == 0 && pointSlopeTo.compare(copy[r], copy[s]) == 0) {
                     if (count + 1 == lineSegments.length) {
                         lineSegments = resize(lineSegments, count, lineSegments.length * 2);
                     }
-                    // StdOut.println(p + " " + copy[q] + " " + copy[r] + " " + copy[s]);
                     lineSegments[count++] = new LineSegment(p, copy[s]);
                 }
             }
