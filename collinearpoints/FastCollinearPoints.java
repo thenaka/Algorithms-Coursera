@@ -20,7 +20,7 @@ public class FastCollinearPoints {
             throw new IllegalArgumentException("Points must not be null.");
         }
         Point[] copy = copy(points);
-        
+
         validateAndSortPoints(copy);
         lineSegments = new LineSegment[copy.length * copy.length];
         findLineSegments(copy);
@@ -44,6 +44,10 @@ public class FastCollinearPoints {
         }
     }
 
+    // TODO The method segments() should include each maximal line segment
+    // containing 4 (or more) points exactly once. For example, if 5 points appear
+    // on a line segment in the order p→q→r→s→t, then do not include the subsegments
+    // p→s or q→t.
     private void findLineSegments(Point[] points) {
         for (int i = 0; i < points.length; i++) {
             Point p = points[i];
@@ -56,8 +60,7 @@ public class FastCollinearPoints {
                 int r = q + 1;
                 int s = q + 2;
 
-                if (p.compareTo(copy[q]) == 0 || p.compareTo(copy[r]) == 0 || p.compareTo(copy[s]) == 0)
-                {
+                if (p.compareTo(copy[q]) == 0 || p.compareTo(copy[r]) == 0 || p.compareTo(copy[s]) == 0) {
                     continue; // skip point p
                 }
 
