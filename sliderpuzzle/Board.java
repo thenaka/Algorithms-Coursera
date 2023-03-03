@@ -127,9 +127,9 @@ public class Board {
         // 8 1 3
         // 4 0 2
         // 7 6 5
-
+        // Manhattan
         // 3 1 0
-        // 0 2 2
+        // 0 0 2
         // 0 2 2
         testBoard[0][0] = 8;
         testBoard[0][1] = 1;
@@ -143,5 +143,26 @@ public class Board {
         board = new Board(testBoard);
         assert board.hamming() == 5;
         assert board.manhattan() == 10;
+
+        testBoard = new int[size][size];
+        // 3 7 5
+        // 6 8 4
+        // 1 0 2
+        // Manhattan
+        // 2 3 2
+        // 2 1 2
+        // 2 0 3
+        testBoard[0][0] = 3;
+        testBoard[0][1] = 7;
+        testBoard[0][2] = 5;
+        testBoard[1][0] = 6;
+        testBoard[1][1] = 8;
+        testBoard[1][2] = 4;
+        testBoard[2][0] = 1;
+        testBoard[2][1] = 0;
+        testBoard[2][2] = 2;
+        board = new Board(testBoard);
+        assert board.hamming() == 8;
+        assert board.manhattan() == 17;
     }
 }
