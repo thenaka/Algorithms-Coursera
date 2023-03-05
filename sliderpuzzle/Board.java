@@ -152,7 +152,12 @@ public class Board {
         return manhattanValue;
     }
 
-    // is this board the goal board?
+    /**
+     * 
+     * Is this board the goal board?
+     * 
+     * @return true if this is the goal board, otherwise false.
+     */
     public boolean isGoal() {
         return hamming() == 0;
     }
@@ -161,7 +166,8 @@ public class Board {
      * 
      * Does this board equal that?
      * 
-     * @return false if that is null or a different size or if any tile is
+     * @param that the other Board to check for equality.
+     * @return false if that is null or a different size or if any tile value is
      *         different, otherwise true.
      */
     public boolean equals(Object that) {
