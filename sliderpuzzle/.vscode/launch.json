@@ -18,5 +18,14 @@
             "projectName": "sliderpuzzle_a407a478",
             "vmArgs": "-enableassertions"
         }
+        ,
+        {
+            "type": "java",
+            "name": "Solver",
+            "request": "launch",
+            "mainClass": "Solver",
+            "projectName": "sliderpuzzle_a407a478",
+            "vmArgs": "-enableassertions"
+        }
     ]
 }

@@ -414,5 +414,41 @@ public class Board {
             }
         }
         assert count == 3;
+
+        int maxHamming = 0;
+        int maxManhattan = 0;
+
+        for (int i = 0; i < 10; i++) {
+            int[] vals = getHammingAndManhattan(4);
+            if (vals[0] > maxHamming) {
+                maxHamming = vals[0];
+            }
+            if (vals[1] > maxManhattan) {
+                maxManhattan = vals[1];
+            }
+        }
+        StdOut.println("max hamming:" + maxHamming);
+        StdOut.println("max manhattan" + maxManhattan);
+    }
+
+    private static int[] getHammingAndManhattan(int n) {
+        int[] nums = new int[n * n];
+        for (int i = 0; i < n * n; i++) {
+            nums[i] = i;
+        }
+
+        StdRandom.shuffle(nums);
+        int i = 0;
+        int[][] t = new int[n][n];
+        for (int row = 0; row < n; row++) {
+            for (int col = 0; col < n; col++) {
+                t[row][col] = nums[i++];
+            }
+        }
+        Board b = new Board(t);
+        int[] vals = new int[2];
+        vals[0] = b.hamming();
+        vals[1] = b.manhattan();
+        return vals;
     }
 }
