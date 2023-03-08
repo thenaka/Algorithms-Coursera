@@ -1,30 +1,18 @@
 import edu.princeton.cs.algs4.Queue;
+import edu.princeton.cs.algs4.StdOut;
+import edu.princeton.cs.algs4.StdRandom;
 
 public class Board {
     private int size;
-    private Tile[] boardTiles;
-    private Tile zeroTile;
+    private int[][] board;
 
-    private class Tile {
-        public int row;
-        public int col;
-        public int index;
-        public int value;
+    private int zeroRow;
+    private int zeroCol;
 
-        public Tile(int r, int c, int i, int val) {
-            row = r;
-            col = c;
-            index = i;
-            value = val;
-        }
+    private int hammingValue;
+    private int manhattanValue;
 
-        public Tile(Tile tile) {
-            this(tile.row, tile.col, tile.index, tile.value);
-        }
-    }
-
-    private int hammingValue = -1;
-    private int manhattanValue = -1;
+    private Board twin;
 
     /**
      * Create a board from an n-by-n array of tiles,
@@ -39,36 +27,38 @@ public class Board {
         }
 
         size = tiles.length;
-        createBoardTiles(tiles);
+        createBoard(tiles);
     }
 
-    private void createBoardTiles(int[][] tiles) {
-        boardTiles = new Tile[size * size];
-        int i = 0;
+    private void createBoard(int[][] tiles) {
+        int goalTileValue = 1;
+        board = new int[size][size];
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
-                int value = tiles[row][col];
-                Tile currentTile = new Tile(row, col, i, value);
-                boardTiles[i++] = currentTile;
-                if (value == 0) {
-                    zeroTile = currentTile;
+                int currentValue = tiles[row][col];
+
+                // set board value ---------------------------
+                board[row][col] = currentValue;
+
+                // handle zero value -------------------------
+                if (currentValue == 0) {
+                    zeroRow = row;
+                    zeroCol = col;
+
+                    goalTileValue++;
+
+                    continue; // don't count zero out of place
                 }
-            }
-        }
-    }
 
-    private Board(Tile[] tiles) {
-        assert tiles != null;
-        size = (int) Math.sqrt(tiles.length);
-        createBoardTiles(tiles);
-    }
+                // set hamming value -------------------------
+                if (currentValue != goalTileValue++) {
+                    hammingValue++;
+                }
 
-    private void createBoardTiles(Tile[] tiles) {
-        boardTiles = new Tile[size * size];
-        for (int i = 0; i < size * size; i++) {
-            boardTiles[i] = new Tile(tiles[i]);
-            if (boardTiles[i].value == 0) {
-                zeroTile = boardTiles[i];
+                // set manhattan value -----------------------
+                int rowDiff = Math.abs(row - ((currentValue - 1) / size));
+                int colDiff = Math.abs(col - ((currentValue - 1) % size));
+                manhattanValue += rowDiff + colDiff;
             }
         }
     }
@@ -79,15 +69,17 @@ public class Board {
      * @return string representation of this board
      */
     public String toString() {
-        String output = "" + size;
-        for (int i = 0; i < size * size; i++) {
-            if (i % size == 0) {
-                output += "\n";
+        StringBuilder output = new StringBuilder();
+        output.append(size);
+        for (int row = 0; row < size; row++) {
+            output.append("\n");
+            for (int col = 0; col < size; col++) {
+                output.append(board[row][col]);
+                output.append(" ");
             }
-            output += boardTiles[i].value + " ";
         }
 
-        return output;
+        return output.toString();
     }
 
     /**
@@ -105,24 +97,6 @@ public class Board {
      * @return number of tiles out of place.
      */
     public int hamming() {
-        if (hammingValue > -1) {
-            return hammingValue;
-        }
-
-        hammingValue = 0;
-        int goalTileValue = 1;
-        for (int i = 0; i < size * size; i++) {
-            int tileValue = boardTiles[i].value;
-            if (tileValue == 0) {
-                goalTileValue++;
-                continue; // don't count zero out of place
-            }
-
-            if (tileValue != goalTileValue++) {
-                hammingValue++;
-            }
-        }
-
         return hammingValue;
     }
 
@@ -133,22 +107,6 @@ public class Board {
      * @return sum of Manhattan distances between tiles and goal.
      */
     public int manhattan() {
-        if (manhattanValue > -1) {
-            return manhattanValue;
-        }
-
-        manhattanValue = 0;
-        for (int i = 0; i < size * size; i++) {
-            int tileValue = boardTiles[i].value;
-            if (tileValue == 0) {
-                continue; // don't count the zero tile as out of place
-            }
-
-            int rowDiff = Math.abs(boardTiles[i].row - ((tileValue - 1) / size));
-            int colDiff = Math.abs(boardTiles[i].col - ((tileValue - 1) % size));
-            manhattanValue += rowDiff + colDiff;
-        }
-
         return manhattanValue;
     }
 
@@ -171,8 +129,14 @@ public class Board {
      *         different, otherwise true.
      */
     public boolean equals(Object that) {
-        if (!(that instanceof Board)) {
+        if (that == null) {
             return false;
+        }
+        if (getClass() != that.getClass()) {
+            return false;
+        }
+        if (this == that) {
+            return true;
         }
 
         Board other = (Board) that;
@@ -180,9 +144,11 @@ public class Board {
             return false;
         }
 
-        for (int i = 0; i < size * size; i++) {
-            if (boardTiles[i].value != other.boardTiles[i].value) {
-                return false;
+        for (int row = 0; row < size; row++) {
+            for (int col = 0; col < size; col++) {
+                if (board[row][col] != other.board[row][col]) {
+                    return false;
+                }
             }
         }
         return true;
@@ -197,44 +163,49 @@ public class Board {
     public Iterable<Board> neighbors() {
         Queue<Board> n = new Queue<Board>();
 
-        if (zeroTile.row > 0) {
-            Board upNeighbor = new Board(boardTiles);
-            upNeighbor.swap(zeroTile.index, zeroTile.index - size);
+        if (zeroRow > 0) {
+            int[][] upBoard = copyBoard();
+            swap(upBoard, zeroRow, zeroCol, zeroRow - 1, zeroCol);
+            Board upNeighbor = new Board(upBoard);
             n.enqueue(upNeighbor);
         }
-        if (zeroTile.row < size - 1) {
-            Board downNeighbor = new Board(boardTiles);
-            downNeighbor.swap(zeroTile.index, zeroTile.index + size);
+        if (zeroRow < size - 1) {
+            int[][] downBoard = copyBoard();
+            swap(downBoard, zeroRow, zeroCol, zeroRow + 1, zeroCol);
+            Board downNeighbor = new Board(downBoard);
             n.enqueue(downNeighbor);
         }
-        if (zeroTile.col > 0) {
-            Board leftNeighbor = new Board(boardTiles);
-            leftNeighbor.swap(zeroTile.index, zeroTile.index - 1);
+        if (zeroCol > 0) {
+            int[][] leftBoard = copyBoard();
+            swap(leftBoard, zeroRow, zeroCol, zeroRow, zeroCol - 1);
+            Board leftNeighbor = new Board(leftBoard);
             n.enqueue(leftNeighbor);
         }
-        if (zeroTile.col < size - 1) {
-            Board rightNeighbor = new Board(boardTiles);
-            rightNeighbor.swap(zeroTile.index, zeroTile.index + 1);
+        if (zeroCol < size - 1) {
+            int[][] rightBoard = copyBoard();
+            swap(rightBoard, zeroRow, zeroCol, zeroRow, zeroCol + 1);
+            Board rightNeighbor = new Board(rightBoard);
             n.enqueue(rightNeighbor);
         }
 
         return n;
     }
 
-    private void swap(int index1, int index2) {
-        assert index1 > -1 && index1 < size * size;
-        assert index2 > -1 && index2 < size * size;
-
-        int tempValue = boardTiles[index1].value;
-        boardTiles[index1].value = boardTiles[index2].value;
-        boardTiles[index2].value = tempValue;
-
-        if (boardTiles[index1].value == 0) {
-            zeroTile = boardTiles[index1];
+    private int[][] copyBoard() {
+        int[][] copy = new int[size][size];
+        for (int row = 0; row < size; row++) {
+            for (int col = 0; col < size; col++) {
+                copy[row][col] = board[row][col];
+            }
         }
-        if (boardTiles[index2].value == 0) {
-            zeroTile = boardTiles[index2];
-        }
+        return copy;
+    }
+
+    private void swap(int[][] boardToSwap, int row1, int col1, int row2, int col2) {
+
+        int tempVal = boardToSwap[row1][col1];
+        boardToSwap[row1][col1] = boardToSwap[row2][col2];
+        boardToSwap[row2][col2] = tempVal;
     }
 
     /**
@@ -244,17 +215,58 @@ public class Board {
      * @return a board that has a pair of tiles exchanged.
      */
     public Board twin() {
-        Board twin = new Board(boardTiles);
+        if (twin != null) {
+            return twin;
+        }
 
-        int index1 = 0;
-        int index2 = 0;
+        int twinSourceRow;
+        int twinSourceCol;
 
+        // Find the twin source row and col
         do {
-            index1 = StdRandom.uniformInt(size * size);
-            index2 = StdRandom.uniformInt(size * size);
-        } while (index1 == index2);
+            twinSourceRow = StdRandom.uniformInt(size);
+            twinSourceCol = StdRandom.uniformInt(size);
+        } while (twinSourceRow == zeroRow && twinSourceCol == zeroCol);
 
-        twin.swap(index1, index2);
+        int[][] twinBoard = copyBoard();
+
+        int twinDestCol;
+        if (twinSourceCol == 0) {
+            // we must swap with the right value
+            if (twinBoard[twinSourceRow][twinSourceCol + 1] == 0) {
+                return twin(); // cannot swap with the zero tile
+            }
+            twinDestCol = twinSourceCol + 1;
+        } else if (twinSourceCol == size - 1) {
+            // we must swap with the left value
+            if (twinBoard[twinSourceRow][twinSourceCol - 1] == 0) {
+                return twin(); // cannot swap with the zero tile
+            }
+            twinDestCol = twinSourceCol - 1;
+        } else {
+            // can swap either way so flip a coin
+            int coinFlip = StdRandom.uniformInt(2);
+            if (coinFlip == 0) {
+                // if possible swap left
+                if (twinBoard[twinSourceRow][twinSourceCol - 1] == 0) {
+                    // cannot swap left
+                    twinDestCol = twinSourceCol + 1;
+                } else {
+                    twinDestCol = twinSourceCol - 1;
+                }
+            } else {
+                // if possible swap right
+                if (twinBoard[twinSourceRow][twinSourceCol + 1] == 0) {
+                    // cannot swap right
+                    twinDestCol = twinSourceCol - 1;
+                } else {
+                    twinDestCol = twinSourceCol + 1;
+                }
+            }
+        }
+
+        swap(twinBoard, twinSourceRow, twinSourceCol, twinSourceRow, twinDestCol);
+        twin = new Board(twinBoard);
         return twin;
     }
 
@@ -275,9 +287,9 @@ public class Board {
         assert solvedBoard.manhattan() == 0;
         assert solvedBoard.toString().equals("" + size + "\n1 2 3 \n4 5 6 \n7 8 0 ");
         assert solvedBoard.isGoal();
-        assert solvedBoard.equals(null) == false;
+        assert !solvedBoard.equals(null);
         assert solvedBoard.equals(solvedBoard);
-        assert solvedBoard.equals(solvedBoard.twin()) == false;
+        assert !solvedBoard.equals(solvedBoard.twin());
 
         // 1 2 3
         // 4 5 6
@@ -311,8 +323,8 @@ public class Board {
         Board board2 = new Board(testBoard);
         assert board2.hamming() == 5;
         assert board2.manhattan() == 10;
-        assert board2.equals(solvedBoard) == false;
-        assert board2.equals(board2.twin()) == false;
+        assert !board2.equals(solvedBoard);
+        assert !board2.equals(board2.twin());
 
         // 8 1 3
         // 4 0 2
@@ -378,9 +390,9 @@ public class Board {
         Board board3 = new Board(testBoard);
         assert board3.hamming() == 8;
         assert board3.manhattan() == 17;
-        assert board3.equals(solvedBoard) == false;
-        assert board3.equals(board2) == false;
-        assert board3.equals(board3.twin()) == false;
+        assert !board3.equals(solvedBoard);
+        assert !board3.equals(board2);
+        assert !board3.equals(board3.twin());
 
         neighbors = board3.neighbors();
         count = 0;
