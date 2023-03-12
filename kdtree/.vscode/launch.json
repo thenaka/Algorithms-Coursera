@@ -6,6 +6,14 @@
     "configurations": [
         {
             "type": "java",
+            "name": "KdTree",
+            "request": "launch",
+            "mainClass": "KdTree",
+            "projectName": "kdtree_cc06bb50",
+            "vmArgs": "-enableassertions"
+        },
+        {
+            "type": "java",
             "name": "Current File",
             "request": "launch",
             "mainClass": "${file}"

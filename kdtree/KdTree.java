@@ -12,7 +12,6 @@ public class KdTree {
     private static class Node {
 
         private Point2D point; // the point
-        private RectHV rect; // the axis-aligned rectangle corresponding to this node
         private Node left; // the left/bottom subtree
         private Node right; // the right/top subtree
         private boolean orientation; // true = VERTICAL (x-coord), false = HORIZONTAL (y-coord)
@@ -141,7 +140,7 @@ public class KdTree {
      * 
      */
     public void draw() {
-        // TODO implement
+        // No need to implement for graded solution
     }
 
     /**
@@ -212,17 +211,16 @@ public class KdTree {
             throw new IllegalArgumentException("No nearest point in as not points.");
 
         Point2D nearest = root.point;
-        nearest(root, new RectHV(0, 0, 1, 1), p, nearest);
+        nearest =  nearest(root, new RectHV(0, 0, 1, 1), p, nearest);
         return nearest;
     }
 
-    private void nearest(Node node, RectHV nodeRect, Point2D queryPoint, Point2D nearest) {
+    private Point2D nearest(Node node, RectHV nodeRect, Point2D queryPoint, Point2D nearest) {
         if (node == null)
-            return;
+            return nearest;
 
         if (node.point.equals(queryPoint)) {
-            nearest = node.point;
-            return;
+            return node.point;
         }
 
         if (queryPoint.distanceSquaredTo(node.point) < queryPoint.distanceSquaredTo(nearest)) {
@@ -239,13 +237,13 @@ public class KdTree {
             xmax = nodeRect.xmax();
             RectHV rightRect = new RectHV(xmin, ymin, xmax, ymax);
             if (rightRect.distanceSquaredTo(queryPoint) < distanceToNearestPoint)
-                nearest(node.right, rightRect, queryPoint, nearest);
+                nearest = nearest(node.right, rightRect, queryPoint, nearest);
 
             xmin = nodeRect.xmin();
             xmax = node.point.x();
             RectHV leftRect = new RectHV(xmin, ymin, xmax, ymax);
             if (leftRect.distanceSquaredTo(queryPoint) < distanceToNearestPoint)
-                nearest(node.left, leftRect, queryPoint, nearest);
+                nearest = nearest(node.left, leftRect, queryPoint, nearest);
         } else { // HORIZONTAL
             xmin = nodeRect.xmin();
             xmax = nodeRect.xmax();
@@ -254,14 +252,15 @@ public class KdTree {
             ymax = nodeRect.ymax();
             RectHV rightRect = new RectHV(xmin, ymin, xmax, ymax);
             if (rightRect.distanceSquaredTo(queryPoint) < distanceToNearestPoint)
-                nearest(node.right, rightRect, queryPoint, nearest);
+                nearest = nearest(node.right, rightRect, queryPoint, nearest);
 
             ymin = nodeRect.ymin();
             ymax = node.point.y();
             RectHV leftRect = new RectHV(xmin, ymin, xmax, ymax);
             if (leftRect.distanceSquaredTo(queryPoint) < distanceToNearestPoint)
-                nearest(node.left, leftRect, queryPoint, nearest);
+                nearest = nearest(node.left, leftRect, queryPoint, nearest);
         }
+        return nearest;
     }
 
     private void throwIfNull(Point2D p) {
@@ -272,6 +271,56 @@ public class KdTree {
 
     // unit testing of the methods
     public static void main(String[] args) {
+        KdTree kdTree = new KdTree();
+        assert kdTree.size() == 0;
+        assert kdTree.isEmpty();
 
+        Point2D point1x1 = new Point2D(0.1, 0.1);
+        Point2D point2x2 = new Point2D(0.2, 0.2);
+        Point2D point3x3 = new Point2D(0.3, 0.3);
+        Point2D point4x4 = new Point2D(0.4, 0.4);
+        Point2D point5x5 = new Point2D(0.5, 0.5);
+
+        kdTree.insert(point1x1);
+        kdTree.insert(point2x2);
+        kdTree.insert(point3x3);
+        kdTree.insert(point4x4);
+        kdTree.insert(point5x5);
+        assert kdTree.size() == 5;
+        assert !kdTree.isEmpty();
+
+        Point2D nearest = kdTree.nearest(new Point2D(0, 0));
+        assert nearest.equals(point1x1);
+        nearest = kdTree.nearest(new Point2D(0.25, 0.26));
+        assert nearest.equals(point3x3);
+        nearest = kdTree.nearest(new Point2D(0.4125, 0.5125));
+        assert nearest.equals(point5x5);
+
+        Iterable<Point2D> pointsInRect = kdTree.range(new RectHV(0.1, 0.2, 0.2, 0.3));
+        for (Point2D p : pointsInRect) {
+            assert p.equals(point2x2) : "This rectangle only contains one of the points.";
+        }
+        pointsInRect = kdTree.range(new RectHV(0.01, 0.01, 0.6, 0.6));
+        int count = 0;
+        for (Point2D p : pointsInRect) {
+            switch (++count) {
+                case 1:
+                    assert p.equals(point5x5);
+                    break;
+                case 2:
+                    assert p.equals(point4x4);
+                    break;
+                case 3:
+                    assert p.equals(point3x3);
+                    break;
+                case 4:
+                    assert p.equals(point2x2);
+                    break;
+                case 5:
+                    assert p.equals(point1x1);
+                    break;
+            }
+        }
+        assert count == 5;
     }
 }
