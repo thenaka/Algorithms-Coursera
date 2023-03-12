@@ -1,7 +1,7 @@
-import edu.princeton.cs.algs4.SET;
 import edu.princeton.cs.algs4.Point2D;
+import edu.princeton.cs.algs4.Queue;
 import edu.princeton.cs.algs4.RectHV;
-import edu.princeton.cs.algs4.Stack;
+import edu.princeton.cs.algs4.SET;
 
 public class PointSET {
     private SET<Point2D> points;
@@ -84,10 +84,10 @@ public class PointSET {
             throw new IllegalArgumentException("Rectangle must not be null.");
         }
 
-        Stack<Point2D> pointInRect = new Stack<>();
+        Queue<Point2D> pointInRect = new Queue<>();
         for (Point2D p : points) {
             if (rect.contains(p)) {
-                pointInRect.push(p);
+                pointInRect.enqueue(p);
             }
         }
         return pointInRect;
@@ -105,7 +105,7 @@ public class PointSET {
         throwIfNull(p);
 
         Point2D nearest = null;
-        double distance = Double.MAX_VALUE;
+        double distance = Double.POSITIVE_INFINITY;
         for (Point2D point : points) {
             double distanceTo = point.distanceSquaredTo(p);
             if (distanceTo < distance) {
@@ -144,7 +144,7 @@ public class PointSET {
 
         Point2D nearest = pointSet.nearest(new Point2D(0, 0));
         assert nearest.equals(point1x1);
-        nearest = pointSet.nearest(new Point2D(0.25, 0.25));
+        nearest = pointSet.nearest(new Point2D(0.25, 0.26));
         assert nearest.equals(point3x3);
         nearest = pointSet.nearest(new Point2D(0.4125, 0.5125));
         assert nearest.equals(point5x5);
@@ -158,19 +158,19 @@ public class PointSET {
         for (Point2D p : pointsInRect) {
             switch (++count) {
                 case 1:
-                    p.equals(point1x1);
+                    assert p.equals(point1x1);
                     break;
                 case 2:
-                    p.equals(point2x2);
+                    assert p.equals(point2x2);
                     break;
                 case 3:
-                    p.equals(point3x3);
+                    assert p.equals(point3x3);
                     break;
                 case 4:
-                    p.equals(point4x4);
+                    assert p.equals(point4x4);
                     break;
                 case 5:
-                    p.equals(point5x5);
+                    assert p.equals(point5x5);
                     break;
             }
         }
