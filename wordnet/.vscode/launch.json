@@ -1,0 +1,38 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Outcast",
+            "request": "launch",
+            "mainClass": "Outcast",
+            "projectName": "wordnet_423e5a9a",
+            "vmArgs": "-enableassertions"
+        },
+        {
+            "type": "java",
+            "name": "SAP",
+            "request": "launch",
+            "mainClass": "SAP",
+            "projectName": "wordnet_423e5a9a",
+            "vmArgs": "-enableassertions"
+        },
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "WordNet",
+            "request": "launch",
+            "mainClass": "WordNet",
+            "projectName": "wordnet_423e5a9a",
+            "vmArgs": "-enableassertions"
+        }
+    ]
+}
