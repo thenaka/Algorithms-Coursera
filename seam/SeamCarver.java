@@ -5,7 +5,8 @@ public class SeamCarver {
 
     private Picture picture;
     private double[][] energy;
-    private ShortestPath[][] shortestPath;
+    private ShortestPath[][] verticalShortestPaths;
+    private ShortestPath[][] horizontalShortestPaths;
 
     /**
      * Create a seam carver object based on the given picture
@@ -21,21 +22,19 @@ public class SeamCarver {
         this.picture = new Picture(picture);
 
         this.energy = new double[this.picture.width()][this.picture.height()];
-        this.shortestPath = new ShortestPath[this.picture.width()][this.picture.height()];
-
+        this.verticalShortestPaths = new ShortestPath[this.picture.width()][this.picture.height()];
+        this.horizontalShortestPaths = new ShortestPath[this.picture.width()][this.picture.height()];
         initialize();
     }
 
     private void initialize() {
         for (int row = 0; row < this.picture.height(); row++) {
             for (int col = 0; col < this.picture.width(); col++) {
-                this.shortestPath[col][row] = new ShortestPath();
-
-                if (col == 0 || col == this.picture.width() - 1 || row == 0 || row == this.picture.height() - 1) {
+                if (energy[col][row] == 0 &&
+                        col == 0 || col == this.picture.width() - 1 ||
+                        row == 0 || row == this.picture.height() - 1) {
                     this.energy[col][row] = 1000;
-                    continue;
                 }
-                this.energy[col][row] = Double.MAX_VALUE;
             }
         }
     }
@@ -122,12 +121,54 @@ public class SeamCarver {
      * @return sequence of indices for vertical seam.
      */
     public int[] findVerticalSeam() {
+        for (int row = 1; row < this.picture.height() - 1; row++) {
+            for (int col = 1; col < this.picture.width() - 1; col++) {
+                if (row == 1) {
+                    int[] pathTo = new int[this.picture.height()];
+                    pathTo[0] = col;
+                    pathTo[row] = col;
+                    this.verticalShortestPaths[col][row] = new ShortestPath(row, col, pathTo, 0, Orientation.VERTICAL);
+                    continue;
+                }
 
-        for (int row = 1; row < this.picture.height(); row++) {
-            for (int col = 1; col < this.picture.width(); col++) {
-
+                ShortestPath currentShortestPath = getShortestPath(this.verticalShortestPaths[col - 1][row - 1],
+                        new ShortestPath(row, col, Orientation.VERTICAL));
+                currentShortestPath = getShortestPath(this.verticalShortestPaths[col][row - 1], currentShortestPath);
+                currentShortestPath = getShortestPath(this.verticalShortestPaths[col + 1][row - 1],
+                        currentShortestPath);
             }
         }
+
+        ShortestPath shortestPath = new ShortestPath(0, 0, Orientation.VERTICAL);
+        int penultimateRow = this.picture.height() - 2;
+        for (int col = 1; col < this.picture.width() - 1; col++) {
+            ShortestPath currentShortestPath = this.verticalShortestPaths[col][penultimateRow];
+            if (currentShortestPath.distanceTo < shortestPath.distanceTo) {
+                shortestPath = currentShortestPath;
+            }
+        }
+        shortestPath.pathTo[this.picture.height() - 1] = shortestPath.getCol();
+        return shortestPath.getPathTo();
+    }
+
+    private ShortestPath getShortestPath(ShortestPath previousShortestPath, ShortestPath currentShortestPath) {
+        double distanceTo = previousShortestPath.getDistanceTo() + previousShortestPath.getEnergy();
+        if (distanceTo < currentShortestPath.getDistanceTo()) {
+            int[] pathTo = copyPathTo(previousShortestPath.getPathTo());
+            pathTo[currentShortestPath.getCol()] = currentShortestPath.getCol();
+
+            currentShortestPath = new ShortestPath(currentShortestPath.getRow(), currentShortestPath.getCol(), pathTo,
+                    distanceTo, currentShortestPath.getOrientation());
+        }
+        return currentShortestPath;
+    }
+
+    private int[] copyPathTo(int[] sourcePathTo) {
+        int[] pathTo = new int[sourcePathTo.length];
+        for (int i = 0; i < pathTo.length; i++) {
+            pathTo[i] = sourcePathTo[i];
+        }
+        return pathTo;
     }
 
     /**
@@ -171,6 +212,8 @@ public class SeamCarver {
     }
 
     private class ShortestPath {
+        private int row;
+        private int col;
         private int[] pathTo;
         private double distanceTo;
         private Orientation orientation;
@@ -178,22 +221,50 @@ public class SeamCarver {
         /**
          * The shortest path to this pixel.
          * 
+         * @param row         the row of this pixel.
+         * @param col         the col of this pixel.
+         * @param orientation the orientation of this path.
          */
-        public ShortestPath() {
+        public ShortestPath(int row, int col, Orientation orientation) {
+            this.row = row;
+            this.col = col;
+            this.orientation = orientation;
             this.distanceTo = Double.MAX_VALUE;
         }
 
         /**
          * The shortest path to this pixel.
          * 
+         * @param row         the row of this pixel.
+         * @param col         the col of this pixel.
          * @param pathTo      the shortest path to this pixel.
          * @param distanceTo  the shortest path's distance to this pixel.
          * @param orientation the orientation of this path.
          */
-        public ShortestPath(int[] pathTo, double distanceTo, Orientation orientation) {
+        public ShortestPath(int row, int col, int[] pathTo, double distanceTo, Orientation orientation) {
+            this.row = row;
+            this.col = col;
             this.pathTo = pathTo;
             this.distanceTo = distanceTo;
             this.orientation = orientation;
+        }
+
+        /**
+         * The row of this pixel.
+         * 
+         * @return the row of this pixel.
+         */
+        public int getRow() {
+            return this.row;
+        }
+
+        /**
+         * The column of this pixel.
+         * 
+         * @return the column of this pixel.
+         */
+        public int getCol() {
+            return this.col;
         }
 
         /**
@@ -212,6 +283,24 @@ public class SeamCarver {
          */
         public double getDistanceTo() {
             return this.distanceTo;
+        }
+
+        /**
+         * This pixel's energy.
+         * 
+         * @return this pixel's energy.
+         */
+        public double getEnergy() {
+            return energy(col, row);
+        }
+
+        /**
+         * This path's orientation.
+         * 
+         * @return this path's orientation.
+         */
+        public Orientation getOrientation() {
+            return this.orientation;
         }
     }
 }
