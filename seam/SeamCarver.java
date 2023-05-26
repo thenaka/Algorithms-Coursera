@@ -30,10 +30,10 @@ public class SeamCarver {
     private void initialize() {
         for (int row = 0; row < this.picture.height(); row++) {
             for (int col = 0; col < this.picture.width(); col++) {
-                if (energy[col][row] == 0 &&
-                        col == 0 || col == this.picture.width() - 1 ||
-                        row == 0 || row == this.picture.height() - 1) {
+                if (col == 0 || col == this.picture.width() - 1 || row == 0 || row == this.picture.height() - 1) {
                     this.energy[col][row] = 1000;
+                } else {
+                    this.energy[col][row] = Double.MAX_VALUE;
                 }
             }
         }
@@ -80,11 +80,6 @@ public class SeamCarver {
             throw new IllegalArgumentException("x or y must be within the bounds of the picture.");
         }
 
-        // Energy is 1000 for the border pixels
-        if (x == 0 || x == this.picture.width() - 1 || y == 0 || y == this.picture.height() - 1) {
-            return 1000;
-        }
-
         // Already calculated energy
         if (energy[x][y] < Double.MAX_VALUE) {
             return energy[x][y];
@@ -121,46 +116,74 @@ public class SeamCarver {
      * @return sequence of indices for vertical seam.
      */
     public int[] findVerticalSeam() {
-        for (int row = 1; row < this.picture.height() - 1; row++) {
+        ShortestPath shortestPath = null;
+        for (int row = 1; row < this.picture.height(); row++) {
             for (int col = 1; col < this.picture.width() - 1; col++) {
                 if (row == 1) {
                     int[] pathTo = new int[this.picture.height()];
-                    pathTo[0] = col;
-                    pathTo[row] = col;
+                    pathTo[0] = col - 1;
                     this.verticalShortestPaths[col][row] = new ShortestPath(row, col, pathTo, 0, Orientation.VERTICAL);
                     continue;
                 }
 
-                ShortestPath currentShortestPath = getShortestPath(this.verticalShortestPaths[col - 1][row - 1],
-                        new ShortestPath(row, col, Orientation.VERTICAL));
-                currentShortestPath = getShortestPath(this.verticalShortestPaths[col][row - 1], currentShortestPath);
-                currentShortestPath = getShortestPath(this.verticalShortestPaths[col + 1][row - 1],
-                        currentShortestPath);
+                ShortestPath currentShortestPath;
+                if (col == 1) {
+                    currentShortestPath = getShortestPath(this.verticalShortestPaths[col][row - 1],
+                            new ShortestPath(row, col, Orientation.VERTICAL));
+                    currentShortestPath = getShortestPath(this.verticalShortestPaths[col + 1][row - 1],
+                            currentShortestPath);
+                } else if (col == this.picture.width() - 2) {
+                    currentShortestPath = getShortestPath(this.verticalShortestPaths[col - 1][row - 1],
+                            new ShortestPath(row, col, Orientation.VERTICAL));
+                    currentShortestPath = getShortestPath(this.verticalShortestPaths[col][row - 1],
+                            currentShortestPath);
+                } else {
+                    currentShortestPath = getShortestPath(this.verticalShortestPaths[col - 1][row - 1],
+                            new ShortestPath(row, col, Orientation.VERTICAL));
+                    currentShortestPath = getShortestPath(this.verticalShortestPaths[col][row - 1],
+                            currentShortestPath);
+                    currentShortestPath = getShortestPath(this.verticalShortestPaths[col + 1][row - 1],
+                            currentShortestPath);
+                }
+                this.verticalShortestPaths[col][row] = currentShortestPath;
+
+                if (row == this.picture.height() - 1) {
+                    if (col == 1) {
+                        shortestPath = this.verticalShortestPaths[col][row];
+                    } else {
+                        if (this.verticalShortestPaths[col][row].distanceTo < shortestPath.distanceTo) {
+                            shortestPath = this.verticalShortestPaths[col][row];
+                        }
+                    }
+                    shortestPath.getPathTo()[row] = col - 1;
+                }
             }
         }
 
-        ShortestPath shortestPath = new ShortestPath(0, 0, Orientation.VERTICAL);
-        int penultimateRow = this.picture.height() - 2;
-        for (int col = 1; col < this.picture.width() - 1; col++) {
-            ShortestPath currentShortestPath = this.verticalShortestPaths[col][penultimateRow];
-            if (currentShortestPath.distanceTo < shortestPath.distanceTo) {
-                shortestPath = currentShortestPath;
-            }
-        }
-        shortestPath.pathTo[this.picture.height() - 1] = shortestPath.getCol();
         return shortestPath.getPathTo();
     }
 
     private ShortestPath getShortestPath(ShortestPath previousShortestPath, ShortestPath currentShortestPath) {
+        assert previousShortestPath != null : "Previous shortest path is null row:" + currentShortestPath.getRow()
+                + " col:" + currentShortestPath.getCol();
         double distanceTo = previousShortestPath.getDistanceTo() + previousShortestPath.getEnergy();
-        if (distanceTo < currentShortestPath.getDistanceTo()) {
-            int[] pathTo = copyPathTo(previousShortestPath.getPathTo());
-            pathTo[currentShortestPath.getCol()] = currentShortestPath.getCol();
-
-            currentShortestPath = new ShortestPath(currentShortestPath.getRow(), currentShortestPath.getCol(), pathTo,
-                    distanceTo, currentShortestPath.getOrientation());
+        if (distanceTo >= currentShortestPath.getDistanceTo()) {
+            return currentShortestPath;
         }
-        return currentShortestPath;
+
+        StdOut.println("row:" + currentShortestPath.getRow() + " col:" + currentShortestPath.getRow() + " distanceTo:"
+                + distanceTo + " is less than current distance to:" + currentShortestPath.getDistanceTo());
+
+        int[] pathTo = copyPathTo(previousShortestPath.getPathTo());
+
+        if (currentShortestPath.getOrientation() == Orientation.VERTICAL) {
+            pathTo[currentShortestPath.getRow() - 1] = currentShortestPath.getCol();
+        } else { // orientation horizontal
+            pathTo[currentShortestPath.getCol() - 1] = currentShortestPath.getRow();
+        }
+
+        return new ShortestPath(currentShortestPath.getRow(), currentShortestPath.getCol(), pathTo, distanceTo,
+                currentShortestPath.getOrientation());
     }
 
     private int[] copyPathTo(int[] sourcePathTo) {
@@ -203,8 +226,27 @@ public class SeamCarver {
         }
     }
 
-    // // unit testing (optional)
-    // public static void main(String[] args)
+    public static void main(String[] args) {
+        Picture picture = new Picture(args[0]);
+        StdOut.printf("image is %d pixels wide by %d pixels high.\n", picture.width(), picture.height());
+
+        SeamCarver sc = new SeamCarver(picture);
+
+        StdOut.printf("Printing energy calculated for each pixel.\n");
+
+        for (int row = 0; row < sc.height(); row++) {
+            for (int col = 0; col < sc.width(); col++)
+                StdOut.printf("%9.2f ", sc.energy(col, row));
+            StdOut.println();
+        }
+
+        StdOut.println();
+        int[] verticalSeam = sc.findVerticalSeam();
+        for (int i = 0; i < verticalSeam.length; i++) {
+            StdOut.print(verticalSeam[i]);
+            StdOut.print(",");
+        }
+    }
 
     private enum Orientation {
         VERTICAL,
@@ -291,7 +333,7 @@ public class SeamCarver {
          * @return this pixel's energy.
          */
         public double getEnergy() {
-            return energy(col, row);
+            return energy(this.col, this.row);
         }
 
         /**
