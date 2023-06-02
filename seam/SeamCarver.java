@@ -107,8 +107,59 @@ public class SeamCarver {
         return deltaXRed + deltaXGreen + deltaXBlue;
     }
 
-    // // sequence of indices for horizontal seam
-    // public int[] findHorizontalSeam()
+    /**
+     * Sequence of indices for horizontal seam.
+     *
+     * @return sequence of indices for horizontal seam.
+     */
+    public int[] findHorizontalSeam() {
+        ShortestPath shortestPath = null;
+        for (int col = 1; col < this.picture.width(); col++) {
+            for (int row = 1; row < this.picture.height() - 1; row++) {
+                if (col == 1) {
+                    int[] pathTo = new int[this.picture.width()];
+                    pathTo[0] = row - 1;
+                    this.horizontalShortestPaths[col][row] = new ShortestPath(col, row, pathTo, 0,
+                            Orientation.HORIZONTAL);
+                    continue;
+                }
+
+                ShortestPath currentShortestPath;
+                if (row == 1) {
+                    currentShortestPath = getShortestPath(this.horizontalShortestPaths[col][row - 1],
+                            new ShortestPath(row, col, Orientation.HORIZONTAL));
+                    currentShortestPath = getShortestPath(this.horizontalShortestPaths[col + 1][row - 1],
+                            currentShortestPath);
+                } else if (row == this.picture.height() - 2) {
+                    currentShortestPath = getShortestPath(this.horizontalShortestPaths[col - 1][row - 1],
+                            new ShortestPath(row, col, Orientation.HORIZONTAL));
+                    currentShortestPath = getShortestPath(this.horizontalShortestPaths[col][row - 1],
+                            currentShortestPath);
+                } else {
+                    currentShortestPath = getShortestPath(this.horizontalShortestPaths[col - 1][row - 1],
+                            new ShortestPath(row, col, Orientation.HORIZONTAL));
+                    currentShortestPath = getShortestPath(this.horizontalShortestPaths[col][row - 1],
+                            currentShortestPath);
+                    currentShortestPath = getShortestPath(this.horizontalShortestPaths[col + 1][row - 1],
+                            currentShortestPath);
+                }
+                this.horizontalShortestPaths[col][row] = currentShortestPath;
+
+                if (col == this.picture.height() - 1) {
+                    if (row == 1) {
+                        shortestPath = this.horizontalShortestPaths[col]row];
+                    } else {
+                        if (this.horizontalShortestPaths[col][row].distanceTo < shortestPath.distanceTo) {
+                            shortestPath = this.horizontalShortestPaths[col][row];
+                            shortestPath.getPathTo()[col] = row;
+                        }
+                    }
+                }
+            }
+        }
+
+        return shortestPath.getPathTo();
+    }
 
     /**
      * Sequence of indices for vertical seam.
