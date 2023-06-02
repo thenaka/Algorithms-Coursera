@@ -10,7 +10,7 @@ public class SeamCarver {
 
     /**
      * Create a seam carver object based on the given picture
-     * 
+     *
      * @param picture used to create seam carver object.
      * @exception IllegalArgumentException if picture is null.
      */
@@ -41,7 +41,7 @@ public class SeamCarver {
 
     /**
      * Get the current picture.
-     * 
+     *
      * @return the current pciture.
      */
     public Picture picture() {
@@ -50,7 +50,7 @@ public class SeamCarver {
 
     /**
      * Get the width of current picture.
-     * 
+     *
      * @return the width of the current picture.
      */
     public int width() {
@@ -59,7 +59,7 @@ public class SeamCarver {
 
     /**
      * Get the height of current picture.
-     * 
+     *
      * @return height of current picture.
      */
     public int height() {
@@ -68,7 +68,7 @@ public class SeamCarver {
 
     /**
      * Get the energy of pixel at column x and row y.
-     * 
+     *
      * @param x zero-based x-pixel position.
      * @param y zero-based y-pixel position.
      * @return energy of pixel at column x and row y.
@@ -112,7 +112,7 @@ public class SeamCarver {
 
     /**
      * Sequence of indices for vertical seam.
-     * 
+     *
      * @return sequence of indices for vertical seam.
      */
     public int[] findVerticalSeam() {
@@ -153,9 +153,9 @@ public class SeamCarver {
                     } else {
                         if (this.verticalShortestPaths[col][row].distanceTo < shortestPath.distanceTo) {
                             shortestPath = this.verticalShortestPaths[col][row];
+                            shortestPath.getPathTo()[row] = col;
                         }
                     }
-                    shortestPath.getPathTo()[row] = col - 1;
                 }
             }
         }
@@ -166,20 +166,18 @@ public class SeamCarver {
     private ShortestPath getShortestPath(ShortestPath previousShortestPath, ShortestPath currentShortestPath) {
         assert previousShortestPath != null : "Previous shortest path is null row:" + currentShortestPath.getRow()
                 + " col:" + currentShortestPath.getCol();
+
         double distanceTo = previousShortestPath.getDistanceTo() + previousShortestPath.getEnergy();
         if (distanceTo >= currentShortestPath.getDistanceTo()) {
             return currentShortestPath;
         }
 
-        StdOut.println("row:" + currentShortestPath.getRow() + " col:" + currentShortestPath.getRow() + " distanceTo:"
-                + distanceTo + " is less than current distance to:" + currentShortestPath.getDistanceTo());
-
         int[] pathTo = copyPathTo(previousShortestPath.getPathTo());
 
         if (currentShortestPath.getOrientation() == Orientation.VERTICAL) {
-            pathTo[currentShortestPath.getRow() - 1] = currentShortestPath.getCol();
+            pathTo[currentShortestPath.getRow() - 1] = previousShortestPath.getCol();
         } else { // orientation horizontal
-            pathTo[currentShortestPath.getCol() - 1] = currentShortestPath.getRow();
+            pathTo[currentShortestPath.getCol() - 1] = previousShortestPath.getRow();
         }
 
         return new ShortestPath(currentShortestPath.getRow(), currentShortestPath.getCol(), pathTo, distanceTo,
@@ -196,7 +194,7 @@ public class SeamCarver {
 
     /**
      * Remove horizontal seam from the current picture.
-     * 
+     *
      * @param seam to remove from the picture.
      * @exception IllegalArgumentException if seam is null or seam is not equal to
      *                                     the picture width.
@@ -212,7 +210,7 @@ public class SeamCarver {
 
     /**
      * Remove vertical seam from current picture.
-     * 
+     *
      * @param seam to remove from the picture.
      * @exception IllegalArgumentException if seam is null or seam is not equal to
      *                                     the picture height.
@@ -262,7 +260,7 @@ public class SeamCarver {
 
         /**
          * The shortest path to this pixel.
-         * 
+         *
          * @param row         the row of this pixel.
          * @param col         the col of this pixel.
          * @param orientation the orientation of this path.
@@ -276,7 +274,7 @@ public class SeamCarver {
 
         /**
          * The shortest path to this pixel.
-         * 
+         *
          * @param row         the row of this pixel.
          * @param col         the col of this pixel.
          * @param pathTo      the shortest path to this pixel.
@@ -293,7 +291,7 @@ public class SeamCarver {
 
         /**
          * The row of this pixel.
-         * 
+         *
          * @return the row of this pixel.
          */
         public int getRow() {
@@ -302,7 +300,7 @@ public class SeamCarver {
 
         /**
          * The column of this pixel.
-         * 
+         *
          * @return the column of this pixel.
          */
         public int getCol() {
@@ -311,7 +309,7 @@ public class SeamCarver {
 
         /**
          * The shortest path to this pixel.
-         * 
+         *
          * @return the shortest path to this pixel.
          */
         public int[] getPathTo() {
@@ -320,7 +318,7 @@ public class SeamCarver {
 
         /**
          * The shortest path's distance to this pixel.
-         * 
+         *
          * @return the shortest path's distance to this pixel.
          */
         public double getDistanceTo() {
@@ -329,7 +327,7 @@ public class SeamCarver {
 
         /**
          * This pixel's energy.
-         * 
+         *
          * @return this pixel's energy.
          */
         public double getEnergy() {
@@ -338,7 +336,7 @@ public class SeamCarver {
 
         /**
          * This path's orientation.
-         * 
+         *
          * @return this path's orientation.
          */
         public Orientation getOrientation() {
