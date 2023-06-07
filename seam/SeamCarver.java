@@ -4,7 +4,9 @@ public class SeamCarver {
     private int colorMask = 0xFF;
 
     private Picture picture;
+    private Picture transposedPicture;
     private double[][] energy;
+    private double[][] transposedEnergy;
     private ShortestPath[][] verticalShortestPaths;
     private ShortestPath[][] horizontalShortestPaths;
 
@@ -20,10 +22,13 @@ public class SeamCarver {
         }
 
         this.picture = new Picture(picture);
+        this.transposedPicture = new Picture(this.picture.height(), this.picture.width());
 
         this.energy = new double[this.picture.width()][this.picture.height()];
+        this.transposedEnergy = new double[this.picture.height()][this.picture.width()];
+
         this.verticalShortestPaths = new ShortestPath[this.picture.width()][this.picture.height()];
-        this.horizontalShortestPaths = new ShortestPath[this.picture.width()][this.picture.height()];
+        this.horizontalShortestPaths = new ShortestPath[this.picture.height()][this.picture.width()];
         initialize();
     }
 
@@ -32,9 +37,12 @@ public class SeamCarver {
             for (int col = 0; col < this.picture.width(); col++) {
                 if (col == 0 || col == this.picture.width() - 1 || row == 0 || row == this.picture.height() - 1) {
                     this.energy[col][row] = 1000;
+                    this.transposedEnergy[row][col] = 1000;
                 } else {
                     this.energy[col][row] = Double.MAX_VALUE;
+                    this.transposedEnergy[row][col] = Double.MAX_VALUE;
                 }
+                this.transposedPicture.setRGB(row, col, this.picture.getRGB(col, row));
             }
         }
     }
@@ -113,52 +121,7 @@ public class SeamCarver {
      * @return sequence of indices for horizontal seam.
      */
     public int[] findHorizontalSeam() {
-        ShortestPath shortestPath = null;
-        for (int col = 1; col < this.picture.width(); col++) {
-            for (int row = 1; row < this.picture.height() - 1; row++) {
-                if (col == 1) {
-                    int[] pathTo = new int[this.picture.width()];
-                    pathTo[0] = row - 1;
-                    this.horizontalShortestPaths[col][row] = new ShortestPath(col, row, pathTo, 0,
-                            Orientation.HORIZONTAL);
-                    continue;
-                }
-
-                ShortestPath currentShortestPath;
-                if (row == 1) {
-                    currentShortestPath = getShortestPath(this.horizontalShortestPaths[col][row - 1],
-                            new ShortestPath(row, col, Orientation.HORIZONTAL));
-                    currentShortestPath = getShortestPath(this.horizontalShortestPaths[col + 1][row - 1],
-                            currentShortestPath);
-                } else if (row == this.picture.height() - 2) {
-                    currentShortestPath = getShortestPath(this.horizontalShortestPaths[col - 1][row - 1],
-                            new ShortestPath(row, col, Orientation.HORIZONTAL));
-                    currentShortestPath = getShortestPath(this.horizontalShortestPaths[col][row - 1],
-                            currentShortestPath);
-                } else {
-                    currentShortestPath = getShortestPath(this.horizontalShortestPaths[col - 1][row - 1],
-                            new ShortestPath(row, col, Orientation.HORIZONTAL));
-                    currentShortestPath = getShortestPath(this.horizontalShortestPaths[col][row - 1],
-                            currentShortestPath);
-                    currentShortestPath = getShortestPath(this.horizontalShortestPaths[col + 1][row - 1],
-                            currentShortestPath);
-                }
-                this.horizontalShortestPaths[col][row] = currentShortestPath;
-
-                if (col == this.picture.height() - 1) {
-                    if (row == 1) {
-                        shortestPath = this.horizontalShortestPaths[col]row];
-                    } else {
-                        if (this.horizontalShortestPaths[col][row].distanceTo < shortestPath.distanceTo) {
-                            shortestPath = this.horizontalShortestPaths[col][row];
-                            shortestPath.getPathTo()[col] = row;
-                        }
-                    }
-                }
-            }
-        }
-
-        return shortestPath.getPathTo();
+        return findSeam(this.transposedPicture, this.horizontalShortestPaths);
     }
 
     /**
@@ -167,43 +130,40 @@ public class SeamCarver {
      * @return sequence of indices for vertical seam.
      */
     public int[] findVerticalSeam() {
+        return findSeam(this.picture, this.verticalShortestPaths);
+    }
+
+    private int[] findSeam(Picture pic, ShortestPath[][] shortestPaths) {
         ShortestPath shortestPath = null;
-        for (int row = 1; row < this.picture.height(); row++) {
-            for (int col = 1; col < this.picture.width() - 1; col++) {
+        for (int row = 1; row < pic.height(); row++) {
+            for (int col = 1; col < pic.width() - 1; col++) {
                 if (row == 1) {
-                    int[] pathTo = new int[this.picture.height()];
+                    int[] pathTo = new int[pic.height()];
                     pathTo[0] = col - 1;
-                    this.verticalShortestPaths[col][row] = new ShortestPath(row, col, pathTo, 0, Orientation.VERTICAL);
+                    shortestPaths[col][row] = new ShortestPath(row, col, pathTo, 0);
                     continue;
                 }
 
                 ShortestPath currentShortestPath;
                 if (col == 1) {
-                    currentShortestPath = getShortestPath(this.verticalShortestPaths[col][row - 1],
-                            new ShortestPath(row, col, Orientation.VERTICAL));
-                    currentShortestPath = getShortestPath(this.verticalShortestPaths[col + 1][row - 1],
-                            currentShortestPath);
-                } else if (col == this.picture.width() - 2) {
-                    currentShortestPath = getShortestPath(this.verticalShortestPaths[col - 1][row - 1],
-                            new ShortestPath(row, col, Orientation.VERTICAL));
-                    currentShortestPath = getShortestPath(this.verticalShortestPaths[col][row - 1],
-                            currentShortestPath);
+                    currentShortestPath = getShortestPath(shortestPaths[col][row - 1], new ShortestPath(row, col));
+                    currentShortestPath = getShortestPath(shortestPaths[col + 1][row - 1], currentShortestPath);
+                } else if (col == pic.width() - 2) {
+                    currentShortestPath = getShortestPath(shortestPaths[col - 1][row - 1], new ShortestPath(row, col));
+                    currentShortestPath = getShortestPath(shortestPaths[col][row - 1], currentShortestPath);
                 } else {
-                    currentShortestPath = getShortestPath(this.verticalShortestPaths[col - 1][row - 1],
-                            new ShortestPath(row, col, Orientation.VERTICAL));
-                    currentShortestPath = getShortestPath(this.verticalShortestPaths[col][row - 1],
-                            currentShortestPath);
-                    currentShortestPath = getShortestPath(this.verticalShortestPaths[col + 1][row - 1],
-                            currentShortestPath);
+                    currentShortestPath = getShortestPath(shortestPaths[col - 1][row - 1], new ShortestPath(row, col));
+                    currentShortestPath = getShortestPath(shortestPaths[col][row - 1], currentShortestPath);
+                    currentShortestPath = getShortestPath(shortestPaths[col + 1][row - 1], currentShortestPath);
                 }
-                this.verticalShortestPaths[col][row] = currentShortestPath;
+                shortestPaths[col][row] = currentShortestPath;
 
-                if (row == this.picture.height() - 1) {
+                if (row == pic.height() - 1) {
                     if (col == 1) {
-                        shortestPath = this.verticalShortestPaths[col][row];
+                        shortestPath = shortestPaths[col][row];
                     } else {
-                        if (this.verticalShortestPaths[col][row].distanceTo < shortestPath.distanceTo) {
-                            shortestPath = this.verticalShortestPaths[col][row];
+                        if (shortestPaths[col][row].distanceTo < shortestPath.distanceTo) {
+                            shortestPath = shortestPaths[col][row];
                             shortestPath.getPathTo()[row] = col;
                         }
                     }
@@ -224,15 +184,9 @@ public class SeamCarver {
         }
 
         int[] pathTo = copyPathTo(previousShortestPath.getPathTo());
+        pathTo[currentShortestPath.getRow() - 1] = previousShortestPath.getCol();
 
-        if (currentShortestPath.getOrientation() == Orientation.VERTICAL) {
-            pathTo[currentShortestPath.getRow() - 1] = previousShortestPath.getCol();
-        } else { // orientation horizontal
-            pathTo[currentShortestPath.getCol() - 1] = previousShortestPath.getRow();
-        }
-
-        return new ShortestPath(currentShortestPath.getRow(), currentShortestPath.getCol(), pathTo, distanceTo,
-                currentShortestPath.getOrientation());
+        return new ShortestPath(currentShortestPath.getRow(), currentShortestPath.getCol(), pathTo, distanceTo);
     }
 
     private int[] copyPathTo(int[] sourcePathTo) {
@@ -295,11 +249,13 @@ public class SeamCarver {
             StdOut.print(verticalSeam[i]);
             StdOut.print(",");
         }
-    }
 
-    private enum Orientation {
-        VERTICAL,
-        HORIZONTAL
+        StdOut.println();
+        int[] horizontalSeam = sc.findHorizontalSeam();
+        for (int i = 0; i < horizontalSeam.length; i++) {
+            StdOut.print(horizontalSeam[i]);
+            StdOut.print(",");
+        }
     }
 
     private class ShortestPath {
@@ -307,37 +263,32 @@ public class SeamCarver {
         private int col;
         private int[] pathTo;
         private double distanceTo;
-        private Orientation orientation;
 
         /**
          * The shortest path to this pixel.
          *
-         * @param row         the row of this pixel.
-         * @param col         the col of this pixel.
-         * @param orientation the orientation of this path.
+         * @param row the row of this pixel.
+         * @param col the col of this pixel.
          */
-        public ShortestPath(int row, int col, Orientation orientation) {
+        public ShortestPath(int row, int col) {
             this.row = row;
             this.col = col;
-            this.orientation = orientation;
             this.distanceTo = Double.MAX_VALUE;
         }
 
         /**
          * The shortest path to this pixel.
          *
-         * @param row         the row of this pixel.
-         * @param col         the col of this pixel.
-         * @param pathTo      the shortest path to this pixel.
-         * @param distanceTo  the shortest path's distance to this pixel.
-         * @param orientation the orientation of this path.
+         * @param row        the row of this pixel.
+         * @param col        the col of this pixel.
+         * @param pathTo     the shortest path to this pixel.
+         * @param distanceTo the shortest path's distance to this pixel.
          */
-        public ShortestPath(int row, int col, int[] pathTo, double distanceTo, Orientation orientation) {
+        public ShortestPath(int row, int col, int[] pathTo, double distanceTo) {
             this.row = row;
             this.col = col;
             this.pathTo = pathTo;
             this.distanceTo = distanceTo;
-            this.orientation = orientation;
         }
 
         /**
@@ -383,15 +334,6 @@ public class SeamCarver {
          */
         public double getEnergy() {
             return energy(this.col, this.row);
-        }
-
-        /**
-         * This path's orientation.
-         *
-         * @return this path's orientation.
-         */
-        public Orientation getOrientation() {
-            return this.orientation;
         }
     }
 }
