@@ -9,6 +9,8 @@ public class SeamCarver {
     private double[][] transposedEnergy;
     private ShortestPath[][] verticalShortestPaths;
     private ShortestPath[][] horizontalShortestPaths;
+    private int[] verticalPath;
+    private int[] horizonalPath;
 
     /**
      * Create a seam carver object based on the given picture
@@ -20,7 +22,10 @@ public class SeamCarver {
         if (picture == null) {
             throw new IllegalArgumentException("picture must not be null.");
         }
+        initialize(picture);
+    }
 
+    private void initialize(Picture picture) {
         this.picture = new Picture(picture);
         this.transposedPicture = new Picture(this.picture.height(), this.picture.width());
 
@@ -29,10 +34,7 @@ public class SeamCarver {
 
         this.verticalShortestPaths = new ShortestPath[this.picture.width()][this.picture.height()];
         this.horizontalShortestPaths = new ShortestPath[this.picture.height()][this.picture.width()];
-        initialize();
-    }
 
-    private void initialize() {
         for (int row = 0; row < this.picture.height(); row++) {
             for (int col = 0; col < this.picture.width(); col++) {
                 if (col == 0 || col == this.picture.width() - 1 || row == 0 || row == this.picture.height() - 1) {
@@ -45,6 +47,8 @@ public class SeamCarver {
                 this.transposedPicture.setRGB(row, col, this.picture.getRGB(col, row));
             }
         }
+        this.verticalPath = null;
+        this.horizonalPath = null;
     }
 
     /**
@@ -125,7 +129,11 @@ public class SeamCarver {
      * @return sequence of indices for horizontal seam.
      */
     public int[] findHorizontalSeam() {
-        return findSeam(this.transposedPicture, this.horizontalShortestPaths, this.transposedEnergy);
+        if (horizonalPath != null) {
+            return horizonalPath;
+        }
+        horizonalPath = findSeam(this.transposedPicture, this.horizontalShortestPaths, this.transposedEnergy);
+        return horizonalPath;
     }
 
     /**
@@ -134,7 +142,11 @@ public class SeamCarver {
      * @return sequence of indices for vertical seam.
      */
     public int[] findVerticalSeam() {
-        return findSeam(this.picture, this.verticalShortestPaths, this.energy);
+        if (verticalPath != null) {
+            return verticalPath;
+        }
+        verticalPath = findSeam(this.picture, this.verticalShortestPaths, this.energy);
+        return verticalPath;
     }
 
     private int[] findSeam(Picture pic, ShortestPath[][] shortestPaths, double[][] energy) {
@@ -224,6 +236,19 @@ public class SeamCarver {
         if (seam.length != this.picture.width()) {
             throw new IllegalArgumentException("seam length must be equal to the width");
         }
+
+        int width = this.picture.width();
+        int newHeight = this.picture.height() - 1;
+        Picture horizontalPicture = new Picture(width, newHeight);
+        for (int row = 0; row < newHeight; row++) {
+            for (int col = 0; col < width; col++) {
+                if (seam[col] == row) {
+                    continue; // skip the seam
+                }
+                horizontalPicture.setRGB(col, row, this.picture.getRGB(col, row));
+            }
+        }
+        initialize(horizontalPicture);
     }
 
     /**
@@ -240,6 +265,19 @@ public class SeamCarver {
         if (seam.length != this.picture.height()) {
             throw new IllegalArgumentException("seam length must be equal to the height.");
         }
+
+        int newWidth = this.picture.width() - 1;
+        int height = this.picture.height();
+        Picture verticalPicture = new Picture(newWidth, height);
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < newWidth; col++) {
+                if (seam[row] == col) {
+                    continue; // skip the seam
+                }
+                verticalPicture.setRGB(col, row, this.picture.getRGB(col, row));
+            }
+        }
+        initialize(verticalPicture);
     }
 
     public static void main(String[] args) {
