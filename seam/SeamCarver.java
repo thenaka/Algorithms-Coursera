@@ -1,7 +1,8 @@
 import edu.princeton.cs.algs4.Picture;
+import edu.princeton.cs.algs4.StdOut;
 
 public class SeamCarver {
-    private int colorMask = 0xFF;
+    private final int colorMask = 0xFF;
 
     private Picture picture;
     private Picture transposedPicture;
@@ -39,12 +40,20 @@ public class SeamCarver {
             for (int col = 0; col < this.picture.width(); col++) {
                 if (col == 0 || col == this.picture.width() - 1 || row == 0 || row == this.picture.height() - 1) {
                     this.energy[col][row] = 1000;
-                    this.transposedEnergy[row][col] = 1000;
                 } else {
                     this.energy[col][row] = Double.MAX_VALUE;
-                    this.transposedEnergy[row][col] = Double.MAX_VALUE;
                 }
                 this.transposedPicture.setRGB(row, col, this.picture.getRGB(col, row));
+            }
+        }
+
+        for (int row = 0; row < this.transposedPicture.height(); row++) {
+            for (int col = 0; col < this.transposedPicture.width(); col++) {
+                if (col == 0 || col == this.transposedPicture.width() - 1 || row == 0 || row == this.transposedPicture.height() - 1) {
+                    this.transposedEnergy[row][col] = 1000;
+                } else {
+                    this.transposedEnergy[row][col] = Double.MAX_VALUE;
+                }
             }
         }
         this.verticalPath = null;
@@ -130,10 +139,10 @@ public class SeamCarver {
      */
     public int[] findHorizontalSeam() {
         if (horizonalPath != null) {
-            return horizonalPath;
+            return copyPathTo(horizonalPath);
         }
         horizonalPath = findSeam(this.transposedPicture, this.horizontalShortestPaths, this.transposedEnergy);
-        return horizonalPath;
+        return copyPathTo(horizonalPath);
     }
 
     /**
@@ -143,10 +152,10 @@ public class SeamCarver {
      */
     public int[] findVerticalSeam() {
         if (verticalPath != null) {
-            return verticalPath;
+            return copyPathTo(verticalPath);
         }
         verticalPath = findSeam(this.picture, this.verticalShortestPaths, this.energy);
-        return verticalPath;
+        return copyPathTo(verticalPath);
     }
 
     private int[] findSeam(Picture pic, ShortestPath[][] shortestPaths, double[][] energy) {
@@ -310,11 +319,11 @@ public class SeamCarver {
     }
 
     private class ShortestPath {
-        private int row;
-        private int col;
-        private double energy;
+        private final int row;
+        private final int col;
+        private final double energy;
         private int[] pathTo;
-        private double distanceTo;
+        private final double distanceTo;
 
         /**
          * The shortest path to this pixel.
