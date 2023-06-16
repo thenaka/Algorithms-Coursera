@@ -103,7 +103,8 @@ public class SeamCarver {
 
     private double energy(int x, int y, double[][] en, Picture pic) {
         if (x < 0 || x >= pic.width() || y < 0 || y >= pic.height()) {
-            throw new IllegalArgumentException("x:" + x + " or y:" + y + " must be within the bounds of the picture.");
+            throw new IllegalArgumentException("x:" + x + " or y:" + y
+                    + " must be within the bounds of the picture width:" + pic.width() + " height:" + pic.height());
         }
 
         // Already calculated energy
@@ -166,26 +167,24 @@ public class SeamCarver {
                 if (row == 1) {
                     int[] pathTo = new int[pic.height()];
                     pathTo[0] = col - 1;
-                    shortestPaths[col][row] = new ShortestPath(row, col, pathTo, 0, energy(row, col, en, pic));
+                    shortestPaths[col][row] = new ShortestPath(row, col, pathTo, 0, energy(col, row, en, pic));
                     continue;
                 }
 
                 ShortestPath currentShortestPath;
                 if (col == 1) { // first column
                     currentShortestPath = getShortestPath(shortestPaths[col][row - 1],
-                            new ShortestPath(row, col, energy(row, col, en, pic)), en, pic);
+                            new ShortestPath(row, col, energy(col, row, en, pic)), en, pic);
                     currentShortestPath = getShortestPath(shortestPaths[col + 1][row - 1], currentShortestPath, en,
                             pic);
                 } else if (col == pic.width() - 2) { // last column
                     currentShortestPath = getShortestPath(shortestPaths[col - 1][row - 1],
-                            new ShortestPath(row, col, energy(row, col, en, pic)), en, pic);
-                    currentShortestPath = getShortestPath(shortestPaths[col][row - 1], currentShortestPath, en,
-                            pic);
+                            new ShortestPath(row, col, energy(col, row, en, pic)), en, pic);
+                    currentShortestPath = getShortestPath(shortestPaths[col][row - 1], currentShortestPath, en, pic);
                 } else {
                     currentShortestPath = getShortestPath(shortestPaths[col - 1][row - 1],
-                            new ShortestPath(row, col, energy(row, col, en, pic)), en, pic);
-                    currentShortestPath = getShortestPath(shortestPaths[col][row - 1], currentShortestPath, en,
-                            pic);
+                            new ShortestPath(row, col, energy(col, row, en, pic)), en, pic);
+                    currentShortestPath = getShortestPath(shortestPaths[col][row - 1], currentShortestPath, en, pic);
                     currentShortestPath = getShortestPath(shortestPaths[col + 1][row - 1], currentShortestPath, en,
                             pic);
                 }
@@ -194,6 +193,7 @@ public class SeamCarver {
                 if (row == pic.height() - 1) {
                     if (col == 1) {
                         shortestPath = shortestPaths[col][row];
+                        shortestPath.getPathTo()[row] = col;
                     } else {
                         if (shortestPaths[col][row].distanceTo < shortestPath.distanceTo) {
                             shortestPath = shortestPaths[col][row];
@@ -221,7 +221,7 @@ public class SeamCarver {
         pathTo[currentShortestPath.getRow() - 1] = previousShortestPath.getCol();
 
         return new ShortestPath(currentShortestPath.getRow(), currentShortestPath.getCol(), pathTo, distanceTo,
-                energy(currentShortestPath.getRow(), currentShortestPath.getCol(), en, pic));
+                energy(currentShortestPath.getCol(), currentShortestPath.getRow(), en, pic));
     }
 
     private int[] copyPathTo(int[] sourcePathTo) {
