@@ -2,7 +2,7 @@ import edu.princeton.cs.algs4.Picture;
 import edu.princeton.cs.algs4.StdOut;
 
 public class SeamCarver {
-    private final int colorMask = 0xFF;
+    private static final int COLOR_MASK = 0xFF;
 
     private Picture picture;
     private Picture transposedPicture;
@@ -26,8 +26,8 @@ public class SeamCarver {
         initialize(picture);
     }
 
-    private void initialize(Picture picture) {
-        this.picture = new Picture(picture);
+    private void initialize(Picture pic) {
+        this.picture = new Picture(pic);
         this.transposedPicture = new Picture(this.picture.height(), this.picture.width());
 
         this.energy = new double[this.picture.width()][this.picture.height()];
@@ -41,7 +41,7 @@ public class SeamCarver {
                 if (col == 0 || col == this.picture.width() - 1 || row == 0 || row == this.picture.height() - 1) {
                     this.energy[col][row] = 1000;
                 } else {
-                    this.energy[col][row] = Double.MAX_VALUE;
+                    this.energy[col][row] = Double.POSITIVE_INFINITY;
                 }
                 this.transposedPicture.setRGB(row, col, this.picture.getRGB(col, row));
             }
@@ -49,10 +49,11 @@ public class SeamCarver {
 
         for (int row = 0; row < this.transposedPicture.height(); row++) {
             for (int col = 0; col < this.transposedPicture.width(); col++) {
-                if (col == 0 || col == this.transposedPicture.width() - 1 || row == 0 || row == this.transposedPicture.height() - 1) {
-                    this.transposedEnergy[row][col] = 1000;
+                if (col == 0 || col == this.transposedPicture.width() - 1 || row == 0
+                        || row == this.transposedPicture.height() - 1) {
+                    this.transposedEnergy[col][row] = 1000;
                 } else {
-                    this.transposedEnergy[row][col] = Double.MAX_VALUE;
+                    this.transposedEnergy[col][row] = Double.POSITIVE_INFINITY;
                 }
             }
         }
@@ -100,30 +101,30 @@ public class SeamCarver {
         return energy(x, y, this.energy, this.picture);
     }
 
-    private double energy(int x, int y, double[][] energy, Picture picture) {
-        if (x < 0 || x >= picture.width() || y < 0 || y >= picture.height()) {
-            throw new IllegalArgumentException("x or y must be within the bounds of the picture.");
+    private double energy(int x, int y, double[][] en, Picture pic) {
+        if (x < 0 || x >= pic.width() || y < 0 || y >= pic.height()) {
+            throw new IllegalArgumentException("x:" + x + " or y:" + y + " must be within the bounds of the picture.");
         }
 
         // Already calculated energy
-        if (energy[x][y] < Double.MAX_VALUE) {
-            return energy[x][y];
+        if (en[x][y] < Double.POSITIVE_INFINITY) {
+            return en[x][y];
         }
 
         // Calculate energy
-        energy[x][y] = Math.sqrt(getDelta(picture.getRGB(x - 1, y), picture.getRGB(x + 1, y))
-                + getDelta(picture.getRGB(x, y - 1), picture.getRGB(x, y + 1)));
-        return energy[x][y];
+        en[x][y] = Math.sqrt(getDelta(pic.getRGB(x - 1, y), pic.getRGB(x + 1, y))
+                + getDelta(pic.getRGB(x, y - 1), pic.getRGB(x, y + 1)));
+        return en[x][y];
     }
 
     private double getDelta(int lowerRGB, int upperRGB) {
-        int lowerRed = (lowerRGB >> 16) & colorMask;
-        int lowerGreen = (lowerRGB >> 8) & colorMask;
-        int lowerBlue = (lowerRGB >> 0) & colorMask;
+        int lowerRed = (lowerRGB >> 16) & COLOR_MASK;
+        int lowerGreen = (lowerRGB >> 8) & COLOR_MASK;
+        int lowerBlue = (lowerRGB >> 0) & COLOR_MASK;
 
-        int upperRed = (upperRGB >> 16) & colorMask;
-        int upperGreen = (upperRGB >> 8) & colorMask;
-        int upperBlue = (upperRGB >> 0) & colorMask;
+        int upperRed = (upperRGB >> 16) & COLOR_MASK;
+        int upperGreen = (upperRGB >> 8) & COLOR_MASK;
+        int upperBlue = (upperRGB >> 0) & COLOR_MASK;
 
         double deltaXRed = Math.pow(lowerRed - upperRed, 2);
         double deltaXGreen = Math.pow(lowerGreen - upperGreen, 2);
@@ -158,34 +159,34 @@ public class SeamCarver {
         return copyPathTo(verticalPath);
     }
 
-    private int[] findSeam(Picture pic, ShortestPath[][] shortestPaths, double[][] energy) {
+    private int[] findSeam(Picture pic, ShortestPath[][] shortestPaths, double[][] en) {
         ShortestPath shortestPath = null;
         for (int row = 1; row < pic.height(); row++) {
             for (int col = 1; col < pic.width() - 1; col++) {
                 if (row == 1) {
                     int[] pathTo = new int[pic.height()];
                     pathTo[0] = col - 1;
-                    shortestPaths[col][row] = new ShortestPath(row, col, pathTo, 0, energy(row, col, energy, pic));
+                    shortestPaths[col][row] = new ShortestPath(row, col, pathTo, 0, energy(row, col, en, pic));
                     continue;
                 }
 
                 ShortestPath currentShortestPath;
                 if (col == 1) { // first column
                     currentShortestPath = getShortestPath(shortestPaths[col][row - 1],
-                            new ShortestPath(row, col, energy(row, col, energy, pic)), energy, pic);
-                    currentShortestPath = getShortestPath(shortestPaths[col + 1][row - 1], currentShortestPath, energy,
+                            new ShortestPath(row, col, energy(row, col, en, pic)), en, pic);
+                    currentShortestPath = getShortestPath(shortestPaths[col + 1][row - 1], currentShortestPath, en,
                             pic);
                 } else if (col == pic.width() - 2) { // last column
                     currentShortestPath = getShortestPath(shortestPaths[col - 1][row - 1],
-                            new ShortestPath(row, col, energy(row, col, energy, pic)), energy, pic);
-                    currentShortestPath = getShortestPath(shortestPaths[col][row - 1], currentShortestPath, energy,
+                            new ShortestPath(row, col, energy(row, col, en, pic)), en, pic);
+                    currentShortestPath = getShortestPath(shortestPaths[col][row - 1], currentShortestPath, en,
                             pic);
                 } else {
                     currentShortestPath = getShortestPath(shortestPaths[col - 1][row - 1],
-                            new ShortestPath(row, col, energy(row, col, energy, pic)), energy, pic);
-                    currentShortestPath = getShortestPath(shortestPaths[col][row - 1], currentShortestPath, energy,
+                            new ShortestPath(row, col, energy(row, col, en, pic)), en, pic);
+                    currentShortestPath = getShortestPath(shortestPaths[col][row - 1], currentShortestPath, en,
                             pic);
-                    currentShortestPath = getShortestPath(shortestPaths[col + 1][row - 1], currentShortestPath, energy,
+                    currentShortestPath = getShortestPath(shortestPaths[col + 1][row - 1], currentShortestPath, en,
                             pic);
                 }
                 shortestPaths[col][row] = currentShortestPath;
@@ -207,7 +208,7 @@ public class SeamCarver {
     }
 
     private ShortestPath getShortestPath(ShortestPath previousShortestPath, ShortestPath currentShortestPath,
-            double[][] energy, Picture pic) {
+            double[][] en, Picture pic) {
         assert previousShortestPath != null : "Previous shortest path is null row:" + currentShortestPath.getRow()
                 + " col:" + currentShortestPath.getCol();
 
@@ -220,7 +221,7 @@ public class SeamCarver {
         pathTo[currentShortestPath.getRow() - 1] = previousShortestPath.getCol();
 
         return new ShortestPath(currentShortestPath.getRow(), currentShortestPath.getCol(), pathTo, distanceTo,
-                energy(currentShortestPath.getRow(), currentShortestPath.getCol(), energy, pic));
+                energy(currentShortestPath.getRow(), currentShortestPath.getCol(), en, pic));
     }
 
     private int[] copyPathTo(int[] sourcePathTo) {
@@ -335,7 +336,7 @@ public class SeamCarver {
         public ShortestPath(int row, int col, double energy) {
             this.row = row;
             this.col = col;
-            this.distanceTo = Double.MAX_VALUE;
+            this.distanceTo = Double.POSITIVE_INFINITY;
             this.energy = energy;
         }
 
@@ -351,7 +352,7 @@ public class SeamCarver {
         public ShortestPath(int row, int col, int[] pathTo, double distanceTo, double energy) {
             this.row = row;
             this.col = col;
-            this.pathTo = pathTo;
+            this.pathTo = copyPathTo(pathTo);
             this.distanceTo = distanceTo;
             this.energy = energy;
         }
@@ -380,7 +381,7 @@ public class SeamCarver {
          * @return the shortest path to this pixel.
          */
         public int[] getPathTo() {
-            return this.pathTo;
+            return copyPathTo(this.pathTo);
         }
 
         /**
