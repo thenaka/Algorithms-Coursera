@@ -27,18 +27,21 @@ public class SeamCarver {
     }
 
     private void initialize(Picture pic) {
+        int picHeight = this.picture.height();
+        int picWidth = this.picture.width();
+
         this.picture = new Picture(pic);
-        this.transposedPicture = new Picture(this.picture.height(), this.picture.width());
+        this.transposedPicture = new Picture(picHeight, picWidth);
 
-        this.energy = new double[this.picture.width()][this.picture.height()];
-        this.transposedEnergy = new double[this.picture.height()][this.picture.width()];
+        this.energy = new double[picWidth][picHeight];
+        this.transposedEnergy = new double[picHeight][picWidth];
 
-        this.verticalShortestPaths = new ShortestPath[this.picture.width()][this.picture.height()];
-        this.horizontalShortestPaths = new ShortestPath[this.picture.height()][this.picture.width()];
+        this.verticalShortestPaths = new ShortestPath[picWidth][picHeight];
+        this.horizontalShortestPaths = new ShortestPath[picHeight][picWidth];
 
-        for (int row = 0; row < this.picture.height(); row++) {
-            for (int col = 0; col < this.picture.width(); col++) {
-                if (col == 0 || col == this.picture.width() - 1 || row == 0 || row == this.picture.height() - 1) {
+        for (int row = 0; row < picHeight; row++) {
+            for (int col = 0; col < picWidth; col++) {
+                if (col == 0 || col == picWidth - 1 || row == 0 || row == picHeight - 1) {
                     this.energy[col][row] = 1000;
                 } else {
                     this.energy[col][row] = Double.POSITIVE_INFINITY;
@@ -47,10 +50,11 @@ public class SeamCarver {
             }
         }
 
-        for (int row = 0; row < this.transposedPicture.height(); row++) {
-            for (int col = 0; col < this.transposedPicture.width(); col++) {
-                if (col == 0 || col == this.transposedPicture.width() - 1 || row == 0
-                        || row == this.transposedPicture.height() - 1) {
+        int tranPicHeight = this.transposedPicture.height();
+        int tranPicWidth = this.transposedPicture.width();
+        for (int row = 0; row < tranPicHeight; row++) {
+            for (int col = 0; col < tranPicWidth; col++) {
+                if (col == 0 || col == tranPicWidth - 1 || row == 0 || row == tranPicHeight - 1) {
                     this.transposedEnergy[col][row] = 1000;
                 } else {
                     this.transposedEnergy[col][row] = Double.POSITIVE_INFINITY;
