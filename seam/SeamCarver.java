@@ -182,22 +182,22 @@ public class SeamCarver {
 
     private int[] findSeam(Picture pic, ShortestPath[][] shortestPaths, double[][] en) {
         ShortestPath shortestPath = null;
-        for (int row = 1; row < pic.height(); row++) {
-            for (int col = 1; col < pic.width() - 1; col++) {
-                if (row == 1) {
+        for (int row = 0; row < pic.height(); row++) {
+            for (int col = 0; col < pic.width(); col++) {
+                if (row == 0) {
                     int[] pathTo = new int[pic.height()];
-                    pathTo[0] = col - 1;
+                    pathTo[0] = col;
                     shortestPaths[col][row] = new ShortestPath(row, col, pathTo, 0, energy(col, row, en, pic));
                     continue;
                 }
 
                 ShortestPath currentShortestPath;
-                if (col == 1) { // first column
+                if (col == 0) { // first column
                     currentShortestPath = getShortestPath(shortestPaths[col][row - 1],
                             new ShortestPath(row, col, energy(col, row, en, pic)), en, pic);
                     currentShortestPath = getShortestPath(shortestPaths[col + 1][row - 1], currentShortestPath, en,
                             pic);
-                } else if (col == pic.width() - 2) { // last column
+                } else if (col == pic.width() - 1) { // last column
                     currentShortestPath = getShortestPath(shortestPaths[col - 1][row - 1],
                             new ShortestPath(row, col, energy(col, row, en, pic)), en, pic);
                     currentShortestPath = getShortestPath(shortestPaths[col][row - 1], currentShortestPath, en, pic);
@@ -211,7 +211,7 @@ public class SeamCarver {
                 shortestPaths[col][row] = currentShortestPath;
 
                 if (row == pic.height() - 1) {
-                    if (col == 1) {
+                    if (col == 0) {
                         shortestPath = shortestPaths[col][row];
                         shortestPath.setPathToIndex(row, shortestPath.getPathTo()[row - 1]);
                     } else {
