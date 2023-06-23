@@ -27,10 +27,11 @@ public class SeamCarver {
     }
 
     private void initialize(Picture pic) {
+        this.picture = new Picture(pic);
+
         int picHeight = this.picture.height();
         int picWidth = this.picture.width();
 
-        this.picture = new Picture(pic);
         this.transposedPicture = new Picture(picHeight, picWidth);
 
         this.energy = new double[picWidth][picHeight];
@@ -41,7 +42,8 @@ public class SeamCarver {
 
         for (int row = 0; row < picHeight; row++) {
             for (int col = 0; col < picWidth; col++) {
-                if (col == 0 || col == picWidth - 1 || row == 0 || row == picHeight - 1) {
+                if (picHeight > 2 && picWidth > 2 && // no border pixels for 1 or 2 height or width pictures
+                        col == 0 || col == picWidth - 1 || row == 0 || row == picHeight - 1) {
                     this.energy[col][row] = 1000;
                 } else {
                     this.energy[col][row] = Double.POSITIVE_INFINITY;
@@ -54,7 +56,8 @@ public class SeamCarver {
         int tranPicWidth = this.transposedPicture.width();
         for (int row = 0; row < tranPicHeight; row++) {
             for (int col = 0; col < tranPicWidth; col++) {
-                if (col == 0 || col == tranPicWidth - 1 || row == 0 || row == tranPicHeight - 1) {
+                if (tranPicHeight > 2 && tranPicWidth > 2 && // no border pixels for 1 or 2 height or width pictures
+                        col == 0 || col == tranPicWidth - 1 || row == 0 || row == tranPicHeight - 1) {
                     this.transposedEnergy[col][row] = 1000;
                 } else {
                     this.transposedEnergy[col][row] = Double.POSITIVE_INFINITY;
@@ -117,8 +120,21 @@ public class SeamCarver {
         }
 
         // Calculate energy
-        en[x][y] = Math.sqrt(getDelta(pic.getRGB(x - 1, y), pic.getRGB(x + 1, y))
-                + getDelta(pic.getRGB(x, y - 1), pic.getRGB(x, y + 1)));
+        if (pic.height() == 1 && pic.width() == 1 ||
+                x == 0 && y == 0 ||
+                x == pic.width() - 1 && y == 0 ||
+                x == 0 && y == pic.height() - 1 ||
+                x == pic.width() - 1 && y == pic.height() - 1) {
+            en[x][y] = pic.getRGB(x, y);
+        } else if (x == 0 || x == pic.width() - 1) {
+            en[x][y] = Math.sqrt(getDelta(pic.getRGB(x, y - 1), pic.getRGB(x, y + 1)));
+        } else if (y == 0 || y == pic.height() - 1) {
+            en[x][y] = Math.sqrt(getDelta(pic.getRGB(x - 1, y), pic.getRGB(x + 1, y)));
+        } else {
+            en[x][y] = Math.sqrt(getDelta(pic.getRGB(x - 1, y), pic.getRGB(x + 1, y)) +
+                    getDelta(pic.getRGB(x, y - 1), pic.getRGB(x, y + 1)));
+        }
+
         return en[x][y];
     }
 
