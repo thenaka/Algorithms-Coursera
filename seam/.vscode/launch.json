@@ -15,7 +15,7 @@
             "name": "SeamCarver",
             "request": "launch",
             "args": [
-                "pics/10x12.png"
+                "pics/6x5.png"
             ],
             "mainClass": "SeamCarver",
             "projectName": "seam_52463f17",

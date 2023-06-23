@@ -193,11 +193,11 @@ public class SeamCarver {
                 if (row == pic.height() - 1) {
                     if (col == 1) {
                         shortestPath = shortestPaths[col][row];
-                        shortestPath.getPathTo()[row] = col;
+                        shortestPath.setPathToIndex(row, shortestPath.getPathTo()[row - 1]);
                     } else {
                         if (shortestPaths[col][row].distanceTo < shortestPath.distanceTo) {
                             shortestPath = shortestPaths[col][row];
-                            shortestPath.getPathTo()[row] = col;
+                            shortestPath.setPathToIndex(row, shortestPath.getPathTo()[row - 1]);
                         }
                     }
                 }
@@ -306,16 +306,22 @@ public class SeamCarver {
 
         StdOut.println();
         int[] verticalSeam = sc.findVerticalSeam();
+        StdOut.print("Vertical Seam: ");
         for (int i = 0; i < verticalSeam.length; i++) {
             StdOut.print(verticalSeam[i]);
-            StdOut.print(",");
+            if (i + 1 < verticalSeam.length) {
+                StdOut.print(",");
+            }
         }
 
         StdOut.println();
         int[] horizontalSeam = sc.findHorizontalSeam();
+        StdOut.print("Horizontal Seam: ");
         for (int i = 0; i < horizontalSeam.length; i++) {
             StdOut.print(horizontalSeam[i]);
-            StdOut.print(",");
+            if (i + 1 < horizontalSeam.length) {
+                StdOut.print(",");
+            }
         }
     }
 
@@ -400,6 +406,16 @@ public class SeamCarver {
          */
         public double getEnergy() {
             return this.energy;
+        }
+
+        /**
+         * Set the index of pathTo to the given value.
+         *
+         * @param index The index to set.
+         * @param value The value to set.
+         */
+        public void setPathToIndex(int index, int value) {
+            this.pathTo[index] = value;
         }
     }
 }
