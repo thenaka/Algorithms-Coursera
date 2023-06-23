@@ -187,7 +187,8 @@ public class SeamCarver {
                 if (row == 0) {
                     int[] pathTo = new int[pic.height()];
                     pathTo[0] = col;
-                    shortestPaths[col][row] = new ShortestPath(row, col, pathTo, 0, energy(col, row, en, pic));
+                    shortestPaths[col][row] = new ShortestPath(row, col, pathTo, energy(col, row),
+                            energy(col, row, en, pic));
                     continue;
                 }
 
