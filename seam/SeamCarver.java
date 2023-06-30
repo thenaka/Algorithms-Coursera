@@ -74,7 +74,7 @@ public class SeamCarver {
      * @return the current pciture.
      */
     public Picture picture() {
-        return this.picture;
+        return new Picture(this.picture);
     }
 
     /**
@@ -187,38 +187,43 @@ public class SeamCarver {
                 if (row == 0) {
                     int[] pathTo = new int[pic.height()];
                     pathTo[0] = col;
-                    shortestPaths[col][row] = new ShortestPath(row, col, pathTo, energy(col, row),
+                    shortestPaths[col][row] = new ShortestPath(row, col, pathTo, energy(col, row, en, pic),
                             energy(col, row, en, pic));
-                    continue;
-                }
-
-                ShortestPath currentShortestPath;
-                if (col == 0) { // first column
-                    currentShortestPath = getShortestPath(shortestPaths[col][row - 1],
-                            new ShortestPath(row, col, energy(col, row, en, pic)), en, pic);
-                    currentShortestPath = getShortestPath(shortestPaths[col + 1][row - 1], currentShortestPath, en,
-                            pic);
-                } else if (col == pic.width() - 1) { // last column
-                    currentShortestPath = getShortestPath(shortestPaths[col - 1][row - 1],
-                            new ShortestPath(row, col, energy(col, row, en, pic)), en, pic);
-                    currentShortestPath = getShortestPath(shortestPaths[col][row - 1], currentShortestPath, en, pic);
                 } else {
-                    currentShortestPath = getShortestPath(shortestPaths[col - 1][row - 1],
-                            new ShortestPath(row, col, energy(col, row, en, pic)), en, pic);
-                    currentShortestPath = getShortestPath(shortestPaths[col][row - 1], currentShortestPath, en, pic);
-                    currentShortestPath = getShortestPath(shortestPaths[col + 1][row - 1], currentShortestPath, en,
-                            pic);
+                    ShortestPath currentShortestPath;
+                    if (col == 0 && col == pic.width() - 1) { // one pixel width picture
+                        currentShortestPath = getShortestPath(shortestPaths[col][row - 1],
+                                new ShortestPath(row, col, energy(col, row, en, pic)), en, pic);
+                    } else if (col == 0) { // first column
+                        currentShortestPath = getShortestPath(shortestPaths[col][row - 1],
+                                new ShortestPath(row, col, energy(col, row, en, pic)), en, pic);
+                        currentShortestPath = getShortestPath(shortestPaths[col + 1][row - 1], currentShortestPath, en,
+                                pic);
+                    } else if (col == pic.width() - 1) { // last column
+                        currentShortestPath = getShortestPath(shortestPaths[col - 1][row - 1],
+                                new ShortestPath(row, col, energy(col, row, en, pic)), en, pic);
+                        currentShortestPath = getShortestPath(shortestPaths[col][row - 1], currentShortestPath, en,
+                                pic);
+                    } else {
+                        currentShortestPath = getShortestPath(shortestPaths[col - 1][row - 1],
+                                new ShortestPath(row, col, energy(col, row, en, pic)), en, pic);
+                        currentShortestPath = getShortestPath(shortestPaths[col][row - 1], currentShortestPath, en,
+                                pic);
+                        currentShortestPath = getShortestPath(shortestPaths[col + 1][row - 1], currentShortestPath, en,
+                                pic);
+                    }
+                    shortestPaths[col][row] = currentShortestPath;
                 }
-                shortestPaths[col][row] = currentShortestPath;
 
                 if (row == pic.height() - 1) {
                     if (col == 0) {
                         shortestPath = shortestPaths[col][row];
-                        shortestPath.setPathToIndex(row, shortestPath.getPathTo()[row - 1]);
+                        shortestPath.setPathToIndex(row, pic.height() > 1 ? shortestPath.getPathTo()[row - 1] : col);
                     } else {
                         if (shortestPaths[col][row].distanceTo < shortestPath.distanceTo) {
                             shortestPath = shortestPaths[col][row];
-                            shortestPath.setPathToIndex(row, shortestPath.getPathTo()[row - 1]);
+                            shortestPath.setPathToIndex(row,
+                                    pic.height() > 1 ? shortestPath.getPathTo()[row - 1] : col);
                         }
                     }
                 }
@@ -268,15 +273,34 @@ public class SeamCarver {
             throw new IllegalArgumentException("seam length must be equal to the width");
         }
 
+        int seamVal = 0;
+        int lastSeamVal;
+        int seamDiff = 0;
         int width = this.picture.width();
         int newHeight = this.picture.height() - 1;
         Picture horizontalPicture = new Picture(width, newHeight);
         for (int row = 0; row < newHeight; row++) {
+            lastSeamVal = -1;
             for (int col = 0; col < width; col++) {
-                if (seam[col] == row) {
-                    continue; // skip the seam
+                seamVal = seam[col];
+                if (seamVal < 0 || seamVal >= this.picture.height()) {
+                    throw new IllegalArgumentException("Seam at [" + col + "] = " + seamVal
+                            + " is invalid for picture height:" + this.picture.height());
                 }
-                horizontalPicture.setRGB(col, row, this.picture.getRGB(col, row));
+
+                if (lastSeamVal != -1) {
+                    seamDiff = Math.abs(lastSeamVal - seamVal);
+                    if (seamDiff > 1) {
+                        throw new IllegalArgumentException("Seam diff is greater than one");
+                    }
+                }
+
+                if (seamVal > row) {
+                    horizontalPicture.setRGB(col, row, this.picture.getRGB(col, row));
+                } else {
+                    horizontalPicture.setRGB(col, row, this.picture.getRGB(col, row + 1));
+                }
+                lastSeamVal = seamVal;
             }
         }
         initialize(horizontalPicture);
@@ -297,15 +321,34 @@ public class SeamCarver {
             throw new IllegalArgumentException("seam length must be equal to the height.");
         }
 
+        int seamVal = 0;
+        int lastSeamVal;
+        int seamDiff = 0;
         int newWidth = this.picture.width() - 1;
         int height = this.picture.height();
         Picture verticalPicture = new Picture(newWidth, height);
         for (int row = 0; row < height; row++) {
+            lastSeamVal = -1;
             for (int col = 0; col < newWidth; col++) {
-                if (seam[row] == col) {
-                    continue; // skip the seam
+                seamVal = seam[row];
+                if (seamVal < 0 || seamVal >= this.picture.width()) {
+                    throw new IllegalArgumentException("Seam at [" + row + "] = " + seamVal
+                            + " is invalid for picture width:" + this.picture.width());
                 }
-                verticalPicture.setRGB(col, row, this.picture.getRGB(col, row));
+
+                if (lastSeamVal != -1) {
+                    seamDiff = Math.abs(lastSeamVal - seamVal);
+                    if (seamDiff > 1) {
+                        throw new IllegalArgumentException("Seam diff is greater than one");
+                    }
+                }
+
+                if (seamVal > col) {
+                    verticalPicture.setRGB(col, row, this.picture.getRGB(col, row));
+                } else {
+                    verticalPicture.setRGB(col, row, this.picture.getRGB(col + 1, row));
+                }
+                lastSeamVal = seamVal;
             }
         }
         initialize(verticalPicture);
@@ -318,10 +361,16 @@ public class SeamCarver {
         SeamCarver sc = new SeamCarver(picture);
 
         StdOut.printf("Printing energy calculated for each pixel.\n");
-
         for (int row = 0; row < sc.height(); row++) {
             for (int col = 0; col < sc.width(); col++)
                 StdOut.printf("%9.2f ", sc.energy(col, row));
+            StdOut.println();
+        }
+
+        StdOut.printf("Printing RGB for each pixel.\n");
+        for (int row = 0; row < sc.height(); row++) {
+            for (int col = 0; col < sc.width(); col++)
+                StdOut.printf("0x%08X ", sc.picture().getRGB(col, row));
             StdOut.println();
         }
 
@@ -336,6 +385,7 @@ public class SeamCarver {
         }
 
         StdOut.println();
+
         int[] horizontalSeam = sc.findHorizontalSeam();
         StdOut.print("Horizontal Seam: ");
         for (int i = 0; i < horizontalSeam.length; i++) {
@@ -343,6 +393,16 @@ public class SeamCarver {
             if (i + 1 < horizontalSeam.length) {
                 StdOut.print(",");
             }
+        }
+
+        StdOut.println();
+
+        sc.removeVerticalSeam(verticalSeam);
+        StdOut.printf("Printing RGB for each pixel.\n");
+        for (int row = 0; row < sc.height(); row++) {
+            for (int col = 0; col < sc.width(); col++)
+                StdOut.printf("0x%08X ", sc.picture().getRGB(col, row));
+            StdOut.println();
         }
     }
 
