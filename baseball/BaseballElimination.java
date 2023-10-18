@@ -20,7 +20,7 @@ public class BaseballElimination {
      * Create a max flow baseball elimination from the given file.
      *
      * @param filename the file used to generate the max flow.
-     * @throws IllegalArgumentException if cannot open {@code name} as
+     * @throws IllegalArgumentException if cannot open {@code filename} as
      *                                  a file or URL
      * @throws IllegalArgumentException if {@code filename} is {@code null}
      */
