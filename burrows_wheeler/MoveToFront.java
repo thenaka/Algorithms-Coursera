@@ -34,7 +34,7 @@ public class MoveToFront {
 
         while (!BinaryStdIn.isEmpty()) {
             char position = BinaryStdIn.readChar();
-            Character c = chars.remove((int)position);
+            Character c = chars.remove((int) position);
             chars.addFirst(c);
             BinaryStdOut.write(c);
         }
@@ -50,8 +50,12 @@ public class MoveToFront {
         return chars;
     }
 
-    // if args[0] is "-", apply move-to-front encoding
-    // if args[0] is "+", apply move-to-front decoding
+    /**
+     * If args[0] is "-", apply move-to-front encoding
+     * If args[0] is "+", apply move-to-front decoding
+     *
+     * @param args see above.
+     */
     public static void main(String[] args) {
         if (args.length != 1) {
             throw new IllegalArgumentException("args must be '-' or '+'");
