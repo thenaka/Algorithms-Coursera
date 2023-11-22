@@ -14,8 +14,14 @@ public class MoveToFront {
 
         while (!BinaryStdIn.isEmpty()) {
             char c = BinaryStdIn.readChar();
-            moveToFront(chars, c, true);
+
+            int charIndex = chars.indexOf(c);
+            chars.remove(charIndex);
+            chars.addFirst(c);
+
+            BinaryStdOut.write(charIndex, 8);
         }
+
         BinaryStdOut.close();
     }
 
@@ -27,11 +33,12 @@ public class MoveToFront {
         LinkedList<Character> chars = setupCharList();
 
         while (!BinaryStdIn.isEmpty()) {
-            int value = BinaryStdIn.readByte() & 0xFF;
-            Character c = chars.get(value);
-            moveToFront(chars, c, false);
+            char position = BinaryStdIn.readChar();
+            Character c = chars.remove((int)position);
+            chars.addFirst(c);
             BinaryStdOut.write(c);
         }
+
         BinaryStdOut.close();
     }
 
@@ -41,19 +48,6 @@ public class MoveToFront {
             chars.add((char) i);
         }
         return chars;
-    }
-
-    private static void moveToFront(LinkedList<Character> chars, char c, boolean shouldPrint) {
-        for (int i = 0; i < R; i++) {
-            if (chars.get(i) == c) {
-                chars.addFirst(c);
-                chars.remove(i);
-                if (shouldPrint) {
-                    BinaryStdOut.write(i);
-                }
-                break;
-            }
-        }
     }
 
     // if args[0] is "-", apply move-to-front encoding
